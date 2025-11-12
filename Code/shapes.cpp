@@ -1,8 +1,67 @@
 #include "shapes.hpp"
-#include <cmath>  // for sqrt, fabs, INFINITY
+#include <cmath>  
 
 
+namespace {
 
+// --- Vector Math Helpers ---
+std::array<float, 3> vecSub(const std::array<float, 3>& a, const std::array<float, 3>& b) {
+    return {a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+}
+
+std::array<float, 3> vecCross(const std::array<float, 3>& a, const std::array<float, 3>& b) {
+    return {
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+    };
+}
+
+float vecDot(const std::array<float, 3>& a, const std::array<float, 3>& b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+/**
+ * @brief Checks if a point P (on the same plane) is inside a triangle (A, B, C).
+ * This uses the 3D "same-side" test, which is robust to winding order.
+ */
+// In shapes.cpp
+
+// In shapes.cpp
+
+// In shapes.cpp
+
+bool isPointInTriangle(const std::array<float, 3>& P,
+                       const std::array<float, 3>& A,
+                       const std::array<float, 3>& B,
+                       const std::array<float, 3>& C,
+                       const std::array<float, 3>& quad_normal) // Use the passed-in normal
+{
+    // Use the quad_normal directly for the side checks.
+    // The check will now be: (Cross(Edge, Point-to-Edge) . quad_normal) >= 0
+
+    // Check side of edge AB
+    std::array<float, 3> edge1 = vecSub(B, A);
+    std::array<float, 3> vp1 = vecSub(P, A);
+    std::array<float, 3> C1 = vecCross(edge1, vp1);
+    if (vecDot(C1, quad_normal) < -1e-6f) return false; // Use quad_normal
+
+    // Check side of edge BC
+    std::array<float, 3> edge2 = vecSub(C, B);
+    std::array<float, 3> vp2 = vecSub(P, B);
+    std::array<float, 3> C2 = vecCross(edge2, vp2);
+    if (vecDot(C2, quad_normal) < -1e-6f) return false; // Use quad_normal
+
+    // Check side of edge CA
+    std::array<float, 3> edge3 = vecSub(A, C);
+    std::array<float, 3> vp3 = vecSub(P, C);
+    std::array<float, 3> C3 = vecCross(edge3, vp3);
+    if (vecDot(C3, quad_normal) < -1e-6f) return false; // Use quad_normal
+
+    return true;
+}
+
+}
 
 
 // get_longest_axis() for AABB
@@ -74,12 +133,13 @@ void AABB::merge(const std::array<float, 3>& point) {
 
 
 
-Plane::Plane(std::array<float,3> corner[4]){
+Plane::Plane(std::array<float,3> corner[4], const Material& mat){
         corners[0] = corner[0];
         corners[1] = corner[1];
         corners[2] = corner[2];
         corners[3] = corner[3];
         type = "Plane";
+        this -> material = mat;
     };
 
 
@@ -157,60 +217,38 @@ bool Plane::intersect(Hit &hit, const Ray &ray) {
     hit.intersection_point = intersection;
     hit.normal = normal;
     hit.t = t;
+    hit.shape = this;
     
     return true;
 }
 
-// Helper function to check if point is inside quad
 bool Plane::isPointInQuad(const std::array<float, 3>& point, const std::array<float, 3> corners[4]) {
-    // Project onto dominant plane and do 2D test
-    // Find dominant axis of normal
-    std::array<float, 3> edge1 = {
-        corners[1][0] - corners[0][0],
-        corners[1][1] - corners[0][1],
-        corners[1][2] - corners[0][2]
-    };
     
-    std::array<float, 3> edge2 = {
-        corners[2][0] - corners[0][0],
-        corners[2][1] - corners[0][1],
-        corners[2][2] - corners[0][2]
-    };
+    // 1. Recalculate the plane normal (as requested)
+    std::array<float, 3> edge1 = vecSub(corners[1], corners[0]);
+    std::array<float, 3> edge2 = vecSub(corners[2], corners[0]);
+    std::array<float, 3> normal = vecCross(edge1, edge2);
     
-    std::array<float, 3> normal = {
-        edge1[1] * edge2[2] - edge1[2] * edge2[1],
-        edge1[2] * edge2[0] - edge1[0] * edge2[2],
-        edge1[0] * edge2[1] - edge1[1] * edge2[0]
-    };
+    float normal_length = sqrt(vecDot(normal, normal));
+    // Avoid division by zero if the plane is degenerate
+    if (normal_length < 1e-6) return false; 
     
-    // Find dominant axis (largest component of normal)
-    int dominant = 0;
-    if (fabs(normal[1]) > fabs(normal[dominant])) dominant = 1;
-    if (fabs(normal[2]) > fabs(normal[dominant])) dominant = 2;
-    
-    // Project to 2D by dropping dominant coordinate
-    int u = (dominant + 1) % 3;
-    int v = (dominant + 2) % 3;
-    
-    // Check if point is inside quad using cross products
-    // For a convex quad, point must be on same side of all edges
-    for (int i = 0; i < 4; i++) {
-        int next = (i + 1) % 4;
-        
-        float edge_u = corners[next][u] - corners[i][u];
-        float edge_v = corners[next][v] - corners[i][v];
-        
-        float to_point_u = point[u] - corners[i][u];
-        float to_point_v = point[v] - corners[i][v];
-        
-        float cross = edge_u * to_point_v - edge_v * to_point_u;
-        
-        if (cross < -1e-6) {
-            return false;
-        }
+    normal[0] /= normal_length;
+    normal[1] /= normal_length;
+    normal[2] /= normal_length;
+
+    // 2. Test if the point is in the first triangle (corners 0, 1, 2)
+    if (isPointInTriangle(point, corners[1], corners[3], corners[2], normal)) {
+        return true;
     }
     
-    return true;
+    // 3. Test if the point is in the second triangle (corners 0, 2, 3)
+    if (isPointInTriangle(point, corners[0], corners[1], corners[2], normal)) {
+        return true;
+    }
+    
+    // The point is not in either triangle
+    return false;
 }
 
 AABB Plane::get_bounding_box() const {
@@ -235,8 +273,9 @@ AABB Plane::get_bounding_box() const {
     return box;
 }
 
- Sphere::Sphere(const std::array<float, 3>& c, float r) : center(c), radius(r) {
+ Sphere::Sphere(const std::array<float, 3>& c, float r, const Material& mat) : center(c), radius(r) {
     type = "Sphere";
+    this -> material = mat;
  }
 
 
@@ -316,6 +355,7 @@ bool Sphere::intersect(Hit &hit, const Ray &ray) {
     hit.intersection_point = intersection;
     hit.normal = normal;
     hit.t = t;
+    hit.shape = this;
     
     return true;
 }
@@ -338,9 +378,10 @@ AABB Sphere::get_bounding_box() const {
 
 Cube::Cube(const std::array<float, 3>& translation,
            const std::array<float, 3>& rotation,  
-           float scale) {
+           float scale, const Material& mat) {
     buildTransformationMatrices(translation, rotation, scale);
     type = "Cube";
+    this -> material = mat;
 }
 
 
@@ -358,11 +399,13 @@ void Cube::buildTransformationMatrices(const std::array<float, 3>& translation,
         {0, 0, 0, 1}
     }};
     
+    float model_scale = scale * 2.0f; 
+
     // Step 1: Build scale matrix
     std::array<std::array<float, 4>, 4> scale_matrix = {{
-        {scale, 0, 0, 0},
-        {0, scale, 0, 0},
-        {0, 0, scale, 0},
+        {model_scale, 0, 0, 0},
+        {0, model_scale, 0, 0},
+        {0, 0, model_scale, 0},
         {0, 0, 0, 1}
     }};
     
@@ -397,7 +440,7 @@ void Cube::buildTransformationMatrices(const std::array<float, 3>& translation,
     // For M = T * R * S, the inverse is M^-1 = S^-1 * R^T * T^-1
     
     // Inverse scale
-    float inv_scale = 1.0f / scale;
+    float inv_scale = 1.0f / model_scale;
     std::array<std::array<float, 4>, 4> inv_scale_matrix = {{
         {inv_scale, 0, 0, 0},
         {0, inv_scale, 0, 0},
@@ -533,18 +576,8 @@ bool Cube::intersect(Hit &hit, const Ray &ray) {
     // Transform normal back to world space (use inverse transpose for normals)
     hit.normal = transformNormal(object_to_world, object_normal);
     
-    // Calculate t in world space
-    std::array<float, 3> world_diff = {
-        hit.intersection_point[0] - ray.origin[0],
-        hit.intersection_point[1] - ray.origin[1],
-        hit.intersection_point[2] - ray.origin[2]
-    };
-    
-    float world_distance = sqrt(world_diff[0] * world_diff[0] + 
-                                world_diff[1] * world_diff[1] + 
-                                world_diff[2] * world_diff[2]);
-    
-    hit.t = world_distance;
+    hit.t = t_object;
+    hit.shape = this;
     
     return true;
 }

@@ -87,8 +87,8 @@ using json = nlohmann::json;
     std::tuple<std::array<float,3>, std::array<float,3>> Camera::pixelToRay(std::tuple<int,int> pixel){
         // image space ----> Normalised Device Coordinates
         float nx, ny;
-        nx = (((float)std::get<0>(pixel))/(float)std::get<0>(resolution)) * 2 - 1 ;
-        ny = (((float)std::get<1>(pixel))/(float)std::get<1>(resolution)) * 2 - 1 ;
+        nx = 1- (((float)std::get<0>(pixel))/(float)std::get<0>(resolution)) * 2  ;
+        ny = 1-(((float)std::get<1>(pixel))/(float)std::get<1>(resolution)) * 2  ; // NDC and pixel convention
 
         // NDC ----> Camera Space
         // actual length on the sensor

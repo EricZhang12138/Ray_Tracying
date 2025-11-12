@@ -4,12 +4,15 @@
 
 node::node(AABB bounding_box): bounding_box(bounding_box){};
 
-BVH::BVH(std::vector<Shapes>& shapes){
-    for (Shapes& shape: shapes){
-        shape_list.push_back(&shape);
-    }
+BVH::BVH(const std::vector<Shapes*>& shapes_ptrs) { // New version takes pointers
+    // Directly copy the pointers
+    shape_list = shapes_ptrs; // shape_list is std::vector<Shapes*>
+
     // Start recursive construction
     if (!shape_list.empty()) {
+        // Pass a COPY of the root node if construct_tree modifies it directly
+        // If construct_tree takes a reference and initializes it, passing root is fine.
+        // Assuming your construct_tree works correctly with a reference to root:
         construct_tree(0, shape_list.size(), root);
     }
 }
@@ -53,6 +56,7 @@ void BVH::construct_tree(int start, int end, node& current_node) {
 
     int mid = (start + end) / 2;
     
+    
     current_node.left = std::make_unique<node>();
     current_node.right = std::make_unique<node>();
 
@@ -66,13 +70,19 @@ void BVH::intersect_helper(Ray ray, node& root_node){
     bool is_intersected = area.intersect(ray);
 
     if (is_intersected){ // if intersects
-        node& left_node = *(root_node.left);
-        node& right_node = *(root_node.right);
+ 
 
         // if internal nodes, at least have one root_node.left or root_node.right
         if (root_node.left || root_node.right){
+            if (root_node.left){
+            node& left_node = *(root_node.left);
             intersect_helper(ray, left_node);
+            }
+            if (root_node.right){
+            node& right_node = *(root_node.right);
             intersect_helper(ray, right_node);
+            }
+
         }else{ // leaf nodes
             for (Shapes* shape: root_node.objects){
 

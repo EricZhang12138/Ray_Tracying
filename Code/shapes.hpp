@@ -7,7 +7,7 @@
 #include <cmath>
 #include <limits>    // For std::numeric_limits
 #include <algorithm> // For std::min, std::max
-
+#include "material.hpp"
 
 
 class Shapes; // Shapes uses Hit and Hit uses Shape. Forward declaration to avoid compilation error
@@ -59,12 +59,13 @@ public:
     virtual bool intersect(Hit &hit, const Ray &ray) = 0;
     virtual AABB get_bounding_box() const = 0;
     std::string type = "Shape";
+    Material material;
     
 };
 
 class Plane : public Shapes{
 public:
-    Plane(std::array<float,3> corner[4]);
+    Plane(std::array<float,3> corner[4], const Material& mat);
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
 
@@ -82,7 +83,7 @@ private:
     
 public:
     // Constructor
-    Sphere(const std::array<float, 3>& c, float r);
+    Sphere(const std::array<float, 3>& c, float r, const Material& mat);
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
 
@@ -92,7 +93,7 @@ public:
 class Cube : public Shapes{
 public:
     // Constructor that takes transformation matrices
-    Cube(const std::array<float, 3>& translation, const std::array<float, 3>& rotation,  float scale);
+    Cube(const std::array<float, 3>& translation, const std::array<float, 3>& rotation,  float scale, const Material& mat);
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
 

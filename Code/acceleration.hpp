@@ -1,3 +1,6 @@
+#ifndef ACCELERATION_HPP
+#define ACCELERATION_HPP
+
 #include "shapes.hpp"
 #include <vector>
 
@@ -14,12 +17,16 @@ class BVH {
 public:
     std::vector<Shapes*> shape_list;
     node root;
-    BVH (std::vector<Shapes>& shape_list);
-    void construct_tree(int start, int end, node& root);
+    BVH(const std::vector<Shapes*>& shapes_ptrs); 
     Hit intersect(Ray ray, node& root);
+private:
+    void construct_tree(int start, int end, node& root);
+    
     
 
 private:
     std::vector<Hit> temp_hit_vec;    // may not be a very good design here 
     void intersect_helper(Ray ray, node& root);
 };
+
+#endif
