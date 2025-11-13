@@ -24,9 +24,42 @@
     "cubes": [
         {
             "translation": [
-                2.4946694374084473,
-                1.3036218881607056,
-                -0.10631272196769714
+                -1.2083531618118286,
+                -1.8532518148422241,
+                -1.3868094682693481
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1,
+            "material": {
+                "diffuse_color": [
+                    0.7495809197425842,
+                    0.0967804491519928,
+                    0.8000156879425049
+                ],
+                "specular_color": [
+                    0.15420523285865784,
+                    0.18481963872909546,
+                    0.8000074625015259
+                ],
+                "roughness": 0.10000000149011612,
+                "k_ambient": 0.1,
+                "k_diffuse": 0.9,
+                "k_specular": 0.3,
+                "reflectivity": 0.0,
+                "transparency": 0.0,
+                "refractive_index": 1.0,
+                "texture_file": "tie-dye-background.ppm"
+            }
+        },
+        {
+            "translation": [
+                -2.532975673675537,
+                -0.6331467628479004,
+                0.4088118374347687
             ],
             "rotation": [
                 0.0,
@@ -49,50 +82,17 @@
                 "k_ambient": 0.1,
                 "k_diffuse": 0.9,
                 "k_specular": 0.3,
-                "reflectivity": 0.5,
-                "transparency": 0.0,
-                "refractive_index": 1.0,
-                "texture_file": ""
-            }
-        },
-        {
-            "translation": [
-                -1.2083531618118286,
-                -1.8532518148422241,
-                -1.3868094682693481
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": -0.6583807468414307,
-            "material": {
-                "diffuse_color": [
-                    0.7495809197425842,
-                    0.0967804491519928,
-                    0.8000156879425049
-                ],
-                "specular_color": [
-                    0.15420523285865784,
-                    0.18481963872909546,
-                    0.8000074625015259
-                ],
-                "roughness": 0.10000000149011612,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
                 "reflectivity": 0.0,
                 "transparency": 0.0,
                 "refractive_index": 1.0,
-                "texture_file": ""
+                "texture_file": "plastic.ppm"
             }
         },
         {
             "translation": [
-                -2.532975673675537,
-                -0.6331467628479004,
-                0.4088118374347687
+                2.546815872192383,
+                1.2011840343475342,
+                0.7048901319503784
             ],
             "rotation": [
                 0.0,
@@ -253,7 +253,7 @@
                 "reflectivity": 0.0,
                 "transparency": 0.0,
                 "refractive_index": 1.0,
-                "texture_file": ""
+                "texture_file": "tie-dye-background.ppm"
             }
         },
         {
