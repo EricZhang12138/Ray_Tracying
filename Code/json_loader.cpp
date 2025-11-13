@@ -62,10 +62,16 @@ Material parse_material(const json& mat_json) {
         if (mat_json.contains("texture_file") && !mat_json["texture_file"].empty()) {
             std::string texture_filename = mat_json["texture_file"];
             if (!texture_filename.empty()) {
-                // This is where the Image class is used!
+                // This is where the Image class is used
                 // It creates a new Image by reading the file
                 // and stores it in the material's shared_ptr.
+                texture_filename = "../../Textures/" + texture_filename;
                 mat.texture = std::make_shared<Image>(texture_filename);
+
+                if (mat.texture->getWidth() == 0 || !mat.texture->loaded_successfully) {
+                std::cerr << "Warning: Failed to load texture file: " << texture_filename << std::endl;
+                mat.texture = nullptr; // Reset to nullptr if loading failed
+            }
             }
         }
 

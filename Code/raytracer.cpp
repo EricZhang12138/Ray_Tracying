@@ -111,8 +111,7 @@ Color shade(
     Material mat = hit.shape->material;
     
     // 2. Get the base diffuse color for this point
-    // TODO: For Task 3.3, you will replace (0,0) with hit.u, hit.v
-    Color base_diffuse_color = mat.getDiffuseColor(0.0f, 0.0f); 
+    Color base_diffuse_color = mat.getDiffuseColor(hit.u, hit.v); 
 
     // 3. Start with the Ambient term
     Color final_color = base_diffuse_color * mat.k_ambient;
@@ -170,7 +169,7 @@ Color shade(
         // 10. Combine with light color and attenuation (1/d^2)
         //float attenuation = light.intensity / (light_distance * light_distance);
         // More aggressive attenuation
-        float attenuation = 0.1f * light.intensity / (1.0f + light_distance + light_distance * light_distance);
+        float attenuation = 0.2f * light.intensity / (1.0f + light_distance + light_distance * light_distance);
         Color light_color = {light.color[0], light.color[1], light.color[2]};
 
         /*final_color = final_color + (light_color * (diffuse * mat.k_diffuse + specular * mat.k_specular) * attenuation);
@@ -306,7 +305,7 @@ int main() {
                 
 
             // 1. Define the grid size. (e.g., 3x3 grid = 9 total samples)
-            const int n_samples_sqrt = 3; 
+            const int n_samples_sqrt = 4; 
             const int total_samples = n_samples_sqrt * n_samples_sqrt;
 
             // 2. Initialize accumulator color to black
@@ -340,9 +339,9 @@ int main() {
             // (Using your Color::operator/)
             Color Averaged_color = totalColor / (float)total_samples;
 
-            /*// Apply gamma correction (power of 1.0/2.2)
+            // Apply gamma correction (power of 1.0/2.2)
             // This converts the linear color to sRGB space for your monitor.
-            Averaged_color.r = std::pow(Averaged_color.r, 1.0f / 2.2f);
+            /*Averaged_color.r = std::pow(Averaged_color.r, 1.0f / 2.2f);
             Averaged_color.g = std::pow(Averaged_color.g, 1.0f / 2.2f);
             Averaged_color.b = std::pow(Averaged_color.b, 1.0f / 2.2f);*/
 

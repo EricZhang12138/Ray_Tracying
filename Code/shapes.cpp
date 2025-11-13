@@ -212,8 +212,24 @@ bool Plane::intersect(Hit &hit, const Ray &ray) {
     if (!isPointInQuad(intersection, corners)) {
         return false;
     }
+
+    // Calculate u, v coordinates for the plane
+    // We project the hit point onto the plane's edge vectors
+    std::array<float, 3> vec_u = vecSub(corners[1], corners[0]);
+    std::array<float, 3> vec_v = vecSub(corners[3], corners[0]);
+    std::array<float, 3> hit_vec = vecSub(intersection, corners[0]);
+
+    // Calculate projection lengths
+    float u = vecDot(hit_vec, vec_u) / vecDot(vec_u, vec_u);
+    float v = vecDot(hit_vec, vec_v) / vecDot(vec_v, vec_v);
+
+    // Clamp values to [0, 1] just in case of precision issues
+    u = std::max(0.0f, std::min(1.0f, u));
+    v = std::max(0.0f, std::min(1.0f, v));
     
     // Fill in the hit information
+    hit.u = u;
+    hit.v = v;
     hit.intersection_point = intersection;
     hit.normal = normal;
     hit.t = t;
@@ -350,6 +366,19 @@ bool Sphere::intersect(Hit &hit, const Ray &ray) {
     normal[0] /= normal_length;
     normal[1] /= normal_length;
     normal[2] /= normal_length;
+
+    // This maps the normal vector (x,y,z) to (u,v)
+    // atan2 handles all quadrants for longitude (u)
+    // asin is simple for latitude (v)
+    const float PI = 3.1415926535f;
+    float phi = atan2(normal[2], normal[0]); // Longitude, from -PI to +PI
+    float theta = asin(normal[1]);          // Latitude, from -PI/2 to +PI/2
+    
+    float u = 1.0f - (phi + PI) / (2.0f * PI); // Map to [0, 1]
+    float v = (theta + PI / 2.0f) / PI;      // Map to [0, 1]
+
+    hit.u = u;
+    hit.v = v;
     
     // Fill in the hit information
     hit.intersection_point = intersection;
@@ -569,6 +598,34 @@ bool Cube::intersect(Hit &hit, const Ray &ray) {
     if (hit_axis >= 0) {
         object_normal[hit_axis] = hit_sign;
     }
+
+    // Calculate u,v in object space based on the hit axis
+    float u, v;
+    // Map coords from [-0.5, 0.5] to [0, 1]
+    float uc = object_intersection[0] + 0.5f;
+    float vc = object_intersection[1] + 0.5f;
+    float wc = object_intersection[2] + 0.5f;
+
+    switch (hit_axis) {
+        case 0: // Hit X-face (+x or -x)
+            u = (hit_sign > 0) ? wc : (1.0f - wc); // Use Z coord
+            v = vc;                               // Use Y coord
+            break;
+        case 1: // Hit Y-face (+y or -y)
+            u = uc;                               // Use X coord
+            v = (hit_sign > 0) ? wc : (1.0f - wc); // Use Z coord
+            break;
+        case 2: // Hit Z-face (+z or -z)
+            u = (hit_sign > 0) ? uc : (1.0f - uc); // Use X coord
+            v = vc;                               // Use Y coord
+            break;
+        default: // Should not happen
+            u = 0; v = 0;
+            break;
+    }
+
+    hit.u = u;
+    hit.v = v;
     
     // Transform intersection point back to world space
     hit.intersection_point = transformPoint(object_to_world, object_intersection);

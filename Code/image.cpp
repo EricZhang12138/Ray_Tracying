@@ -129,4 +129,6 @@ void Image::read(const std::string& filename) {
     
     file.close();
     std::cout << "Image read from " << filename << " (" << width << "x" << height << ")\n";
+    loaded_successfully = true; 
+
 }

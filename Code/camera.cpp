@@ -83,57 +83,61 @@ using json = nlohmann::json;
     }
 
 
+// --- FIX: Change the parameter to accept floats ---
+std::tuple<std::array<float,3>, std::array<float,3>> Camera::pixelToRay(std::tuple<float,float> pixel){
+    
+    // image space ----> Normalised Device Coordinates
+    float nx, ny;
+    // --- FIX: Removed (float) cast, as 'pixel' is now float ---
+    nx = 1- (std::get<0>(pixel) / (float)std::get<0>(resolution)) * 2  ;
+    ny = 1- (std::get<1>(pixel) / (float)std::get<1>(resolution)) * 2  ; // NDC and pixel convention
 
-    std::tuple<std::array<float,3>, std::array<float,3>> Camera::pixelToRay(std::tuple<int,int> pixel){
-        // image space ----> Normalised Device Coordinates
-        float nx, ny;
-        nx = 1- (((float)std::get<0>(pixel))/(float)std::get<0>(resolution)) * 2  ;
-        ny = 1-(((float)std::get<1>(pixel))/(float)std::get<1>(resolution)) * 2  ; // NDC and pixel convention
+    // NDC ----> Camera Space
+    // actual length on the sensor
+    float nx_r = nx * std::get<0>(sensor_dim);
+    float ny_r = ny * std::get<1>(sensor_dim);
+    
+    // This line is unused, which is fine
+    // std::array<float,3> direction = {nx_r, ny_r, focal_length};
 
-        // NDC ----> Camera Space
-        // actual length on the sensor
-        float nx_r = nx * std::get<0>(sensor_dim);
-        float ny_r = ny * std::get<1>(sensor_dim);
-        
-        std::array<float,3> direction = {nx_r, ny_r, focal_length};
+    //normalised gaze vector      z direction
+    std::array<float,3> z_dir = normalize(gaze_vec);
+    //x direction 
+    std::array<float,3> x_dir;
+    cross_product(up_vec, z_dir, x_dir);
+    x_dir = normalize(x_dir);
+    //y direction. This is the corrected Vup, ensuring perfect orthogonality
+    std::array<float,3> y_dir;
+    cross_product(z_dir,x_dir,y_dir);
+    y_dir = normalize(y_dir);
 
-        //normalised gaze vector      z direction
-        std::array<float,3> z_dir = normalize(gaze_vec);
-        //x direction 
-        std::array<float,3> x_dir;
-        cross_product(up_vec, z_dir, x_dir);
-        x_dir = normalize(x_dir);
-        //y direction. This is the corrected Vup, ensuring perfect orthogonality
-        std::array<float,3> y_dir;
-        cross_product(z_dir,x_dir,y_dir);
-        y_dir = normalize(y_dir);
+    // This is your Camera-to-World (C2W) matrix
+    std::array<std::array<float, 4>, 4> M_C2W = {{
+        {x_dir[0], y_dir[0], z_dir[0], location[0]},
+        {x_dir[1], y_dir[1], z_dir[1], location[1]},
+        {x_dir[2], y_dir[2], z_dir[2], location[2]},
+        {0.0f,     0.0f,     0.0f,     1.0f}
+    }};
 
+    // This is your ray direction in Camera Space
+    // (You may need to use -focal_length depending on your coord system)
+    std::array<float, 4> dir_camera = {nx_r, ny_r, focal_length, 0.0f};
 
-        std::array<std::array<float, 4>, 4> M_C2W = {{
-            {x_dir[0], y_dir[0], z_dir[0], location[0]},
-            {x_dir[1], y_dir[1], z_dir[1], location[1]},
-            {x_dir[2], y_dir[2], z_dir[2], location[2]},
-            {0.0f,     0.0f,     0.0f,     1.0f}
-        }};
-
-        std::array<float, 4> dir_camera = {nx_r, ny_r, focal_length, 0.0f};
-
-
-        // Transform using matrix multiplication
-        std::array<float, 3> direction_world;
-        for (int i = 0; i < 3; i++) {
-            direction_world[i] = M_C2W[i][0] * dir_camera[0] + 
-                                M_C2W[i][1] * dir_camera[1] + 
-                                M_C2W[i][2] * dir_camera[2] + 
-                                M_C2W[i][3] * dir_camera[3];
-        }
-           
-        direction_world = normalize(direction_world);
-        
-        return std::make_tuple(location, direction_world);
+    // Transform direction from Camera Space to World Space
+    std::array<float, 3> direction_world;
+    for (int i = 0; i < 3; i++) {
+        direction_world[i] = M_C2W[i][0] * dir_camera[0] + 
+                             M_C2W[i][1] * dir_camera[1] + 
+                             M_C2W[i][2] * dir_camera[2];
+                             // Note: We don't need the 4th column (translation)
+                             // for transforming a *direction* vector
     }
-
-
+       
+    direction_world = normalize(direction_world);
+    
+    // The ray origin is always the camera's location
+    return std::make_tuple(location, direction_world);
+}
 
 
 // need to use a initialiser list so that every member variable has a initial value even when readCameraSpec fails

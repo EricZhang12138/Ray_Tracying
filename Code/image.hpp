@@ -10,9 +10,11 @@ private:
     int height;
     std::vector<unsigned int> pixels;
     
+    
 public:
     Image(int w, int h);    // constructor for write
     Image(const std::string& filename);     // constructor for read 
+    bool loaded_successfully = false;
 
     int getWidth() const { return width; }
     int getHeight() const { return height; }

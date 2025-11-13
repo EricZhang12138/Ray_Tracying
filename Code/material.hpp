@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>   // For std::shared_ptr
 #include "image.hpp"   // For storing a texture (Task 3.3)
+#include <iostream>
 
 /**
  * @brief A simple helper struct for storing and passing colors.
@@ -79,7 +80,7 @@ public:
      * @brief Checks if this material has a texture loaded.
      */
     bool hasTexture() const {
-        return texture != nullptr;
+        return (texture != nullptr && (texture->loaded_successfully));
     }
 
     /**
@@ -92,9 +93,16 @@ public:
      */
     Color getDiffuseColor(float u, float v) const {
         if (!hasTexture()) {
-            // No texture, just return the simple diffuse color.
+            //No texture, just return the simple diffuse color.
+            //std::cout << "No texture file is going to be read" << std::endl;
+            if (texture != nullptr && !(texture->loaded_successfully)){
+                std::cout << "Loaded texture image is a nullptr" << std::endl;
+                exit(1);
+            }
+            //exit(1);
             return diffuse_color;
         }
+        
 
         // --- Texture Mapping ---
         // We have a texture, so we need to sample it.

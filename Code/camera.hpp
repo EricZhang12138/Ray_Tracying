@@ -23,7 +23,7 @@ public:
      * @return A tuple containing the ray's origin (std::array<float, 3>) 
      * and normalized direction (std::array<float, 3>).
      */
-    std::tuple<std::array<float, 3>, std::array<float, 3>> pixelToRay(std::tuple<int, int> pixel);
+    std::tuple<std::array<float, 3>, std::array<float, 3>> pixelToRay(std::tuple<float, float> pixel);
 
     //functions for testing
     std::tuple<int,int> getResolution()const;

@@ -18,6 +18,8 @@ public:
     std::array<float,3> normal;
     float t; // distance along the ray
     Shapes *shape;
+    float u =0.0f;
+    float v =0.0f;
 };
 
 struct Ray{
