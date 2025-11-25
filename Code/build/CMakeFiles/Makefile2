@@ -63,11 +63,11 @@ CMAKE_BINARY_DIR = /Users/ericzhang/Documents/Computer_graphics/Coursework/s2286
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/Raytracing_Test.dir/all
+all: CMakeFiles/Raytracer.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
-codegen: CMakeFiles/Raytracing_Test.dir/codegen
+codegen: CMakeFiles/Raytracer.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -75,40 +75,73 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/Raytracing_Test.dir/clean
+clean: CMakeFiles/Raytracer.dir/clean
+clean: CMakeFiles/export.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/Raytracing_Test.dir
+# Target rules for target CMakeFiles/Raytracer.dir
 
 # All Build rule for target.
-CMakeFiles/Raytracing_Test.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Built target Raytracing_Test"
-.PHONY : CMakeFiles/Raytracing_Test.dir/all
+CMakeFiles/Raytracer.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Built target Raytracer"
+.PHONY : CMakeFiles/Raytracer.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/Raytracing_Test.dir/rule: cmake_check_build_system
+CMakeFiles/Raytracer.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles 7
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Raytracing_Test.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Raytracer.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles 0
-.PHONY : CMakeFiles/Raytracing_Test.dir/rule
+.PHONY : CMakeFiles/Raytracer.dir/rule
 
 # Convenience name for target.
-Raytracing_Test: CMakeFiles/Raytracing_Test.dir/rule
-.PHONY : Raytracing_Test
+Raytracer: CMakeFiles/Raytracer.dir/rule
+.PHONY : Raytracer
 
 # codegen rule for target.
-CMakeFiles/Raytracing_Test.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Finished codegen for target Raytracing_Test"
-.PHONY : CMakeFiles/Raytracing_Test.dir/codegen
+CMakeFiles/Raytracer.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Finished codegen for target Raytracer"
+.PHONY : CMakeFiles/Raytracer.dir/codegen
 
 # clean rule for target.
-CMakeFiles/Raytracing_Test.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/clean
-.PHONY : CMakeFiles/Raytracing_Test.dir/clean
+CMakeFiles/Raytracer.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/clean
+.PHONY : CMakeFiles/Raytracer.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/export.dir
+
+# All Build rule for target.
+CMakeFiles/export.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/export.dir/build.make CMakeFiles/export.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/export.dir/build.make CMakeFiles/export.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles --progress-num=8 "Built target export"
+.PHONY : CMakeFiles/export.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/export.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles 1
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/export.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles 0
+.PHONY : CMakeFiles/export.dir/rule
+
+# Convenience name for target.
+export: CMakeFiles/export.dir/rule
+.PHONY : export
+
+# codegen rule for target.
+CMakeFiles/export.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/export.dir/build.make CMakeFiles/export.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles --progress-num=8 "Finished codegen for target export"
+.PHONY : CMakeFiles/export.dir/codegen
+
+# clean rule for target.
+CMakeFiles/export.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/export.dir/build.make CMakeFiles/export.dir/clean
+.PHONY : CMakeFiles/export.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

@@ -94,8 +94,9 @@ std::tuple<std::array<float,3>, std::array<float,3>> Camera::pixelToRay(std::tup
 
     // NDC ----> Camera Space
     // actual length on the sensor
-    float nx_r = nx * std::get<0>(sensor_dim);
-    float ny_r = ny * std::get<1>(sensor_dim);
+
+    float nx_r = nx * (std::get<0>(sensor_dim) / 2.0f);
+    float ny_r = ny * (std::get<1>(sensor_dim) / 2.0f);
     
     // This line is unused, which is fine
     // std::array<float,3> direction = {nx_r, ny_r, focal_length};

@@ -5,6 +5,7 @@
 #include "light.hpp"
 #include "acceleration.hpp"
 #include <vector>
+#include <random>
 
 // Define a maximum recursion depth to prevent stack overflow
 const int MAX_RECURSION_DEPTH = 10;
@@ -22,7 +23,10 @@ Color shade(
     const Hit& hit, 
     const Ray& viewRay, 
     const std::vector<Light>& lights, 
-    BVH& bvh // Non-const because your BVH::intersect is non-const
+    BVH& bvh, // Non-const because your BVH::intersect is non-const
+    bool use_bvh,
+    std::mt19937& gen,                      // <--- ADD THIS
+    std::uniform_real_distribution<double>& dist
 );
 
 /**
@@ -39,5 +43,8 @@ Color Trace(
     const Ray& ray, 
     BVH& bvh, // Non-const to pass to shade()
     const std::vector<Light>& lights, 
-    int depth
+    int depth,
+    bool use_bvh,
+    std::mt19937& gen,                     
+    std::uniform_real_distribution<double>& dist 
 );

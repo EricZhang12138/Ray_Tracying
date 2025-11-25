@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//Path to the Blender executable
+BLENDER_EXECUTABLE:FILEPATH=/Applications/blender.app/Contents/MacOS/Blender
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=CMAKE_ADDR2LINE-NOTFOUND
 
@@ -131,7 +134,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=Raytracing_Test
+CMAKE_PROJECT_NAME:STATIC=Raytracer
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=/usr/bin/ranlib
@@ -199,22 +202,13 @@ CMAKE_TAPI:FILEPATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeD
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
-Intersection_Test_BINARY_DIR:STATIC=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build
+Raytracer_BINARY_DIR:STATIC=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build
 
 //Value Computed by CMake
-Intersection_Test_IS_TOP_LEVEL:STATIC=ON
+Raytracer_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-Intersection_Test_SOURCE_DIR:STATIC=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code
-
-//Value Computed by CMake
-Raytracing_Test_BINARY_DIR:STATIC=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build
-
-//Value Computed by CMake
-Raytracing_Test_IS_TOP_LEVEL:STATIC=ON
-
-//Value Computed by CMake
-Raytracing_Test_SOURCE_DIR:STATIC=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code
+Raytracer_SOURCE_DIR:STATIC=/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code
 
 
 ########################

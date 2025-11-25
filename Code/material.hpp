@@ -57,6 +57,11 @@ public:
     float k_specular = 0.3f;   // Specular coefficient
     float shininess = 20.0f;   // Specular "shininess" exponent
 
+
+    // --- NEW: Distributed Raytracing Property ---
+    // 0.0 = Perfect Mirror (Sharp), 1.0 = Diffuse (Blurry)
+    float roughness = 0.0f;
+
     // === 2. Whitted-Style Properties (Task 3.1) ===
     // These define the recursive ray properties.
 

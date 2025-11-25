@@ -56,7 +56,6 @@ void BVH::construct_tree(int start, int end, node& current_node) {
 
     int mid = (start + end) / 2;
     
-    
     current_node.left = std::make_unique<node>();
     current_node.right = std::make_unique<node>();
 
@@ -116,4 +115,37 @@ Hit BVH::intersect(Ray ray, node& root_node){
     Hit result = *closest;
     temp_hit_vec.clear();
     return result;
+}
+
+
+// ... existing includes ...
+
+// 1. Implement the Brute Force Linear Search
+Hit BVH::intersect_linear(const Ray& ray) {
+    Hit closest_hit;
+    closest_hit.t = std::numeric_limits<float>::max();
+    closest_hit.shape = nullptr;
+
+    // Simply loop through the vector of all shapes
+    for (Shapes* shape : shape_list) {
+        Hit current_hit;
+        if (shape->intersect(current_hit, ray)) {
+            if (current_hit.t < closest_hit.t) {
+                closest_hit = current_hit;
+            }
+        }
+    }
+    return closest_hit;
+}
+
+// 2. Implement the Master Getter
+Hit BVH::get_intersection(const Ray& ray, bool use_acceleration) {
+    if (use_acceleration) {
+        // Call your existing tree traversal
+        // Note: You might need to clear temp_hit_vec here or ensure your existing intersect handles it
+        return intersect(ray, root); 
+    } else {
+        // Call the new linear search
+        return intersect_linear(ray);
+    }
 }

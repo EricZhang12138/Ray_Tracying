@@ -124,24 +124,37 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named Raytracing_Test
+# Target rules for targets named Raytracer
 
 # Build rule for target.
-Raytracing_Test: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Raytracing_Test
-.PHONY : Raytracing_Test
+Raytracer: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Raytracer
+.PHONY : Raytracer
 
 # fast build rule for target.
-Raytracing_Test/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/build
-.PHONY : Raytracing_Test/fast
+Raytracer/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/build
+.PHONY : Raytracer/fast
+
+#=============================================================================
+# Target rules for targets named export
+
+# Build rule for target.
+export: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 export
+.PHONY : export
+
+# fast build rule for target.
+export/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/export.dir/build.make CMakeFiles/export.dir/build
+.PHONY : export/fast
 
 acceleration.o: acceleration.cpp.o
 .PHONY : acceleration.o
 
 # target to build an object file
 acceleration.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/acceleration.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/acceleration.cpp.o
 .PHONY : acceleration.cpp.o
 
 acceleration.i: acceleration.cpp.i
@@ -149,7 +162,7 @@ acceleration.i: acceleration.cpp.i
 
 # target to preprocess a source file
 acceleration.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/acceleration.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/acceleration.cpp.i
 .PHONY : acceleration.cpp.i
 
 acceleration.s: acceleration.cpp.s
@@ -157,7 +170,7 @@ acceleration.s: acceleration.cpp.s
 
 # target to generate assembly for a file
 acceleration.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/acceleration.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/acceleration.cpp.s
 .PHONY : acceleration.cpp.s
 
 camera.o: camera.cpp.o
@@ -165,7 +178,7 @@ camera.o: camera.cpp.o
 
 # target to build an object file
 camera.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/camera.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/camera.cpp.o
 .PHONY : camera.cpp.o
 
 camera.i: camera.cpp.i
@@ -173,7 +186,7 @@ camera.i: camera.cpp.i
 
 # target to preprocess a source file
 camera.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/camera.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/camera.cpp.i
 .PHONY : camera.cpp.i
 
 camera.s: camera.cpp.s
@@ -181,7 +194,7 @@ camera.s: camera.cpp.s
 
 # target to generate assembly for a file
 camera.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/camera.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/camera.cpp.s
 .PHONY : camera.cpp.s
 
 image.o: image.cpp.o
@@ -189,7 +202,7 @@ image.o: image.cpp.o
 
 # target to build an object file
 image.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/image.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/image.cpp.o
 .PHONY : image.cpp.o
 
 image.i: image.cpp.i
@@ -197,7 +210,7 @@ image.i: image.cpp.i
 
 # target to preprocess a source file
 image.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/image.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/image.cpp.i
 .PHONY : image.cpp.i
 
 image.s: image.cpp.s
@@ -205,7 +218,7 @@ image.s: image.cpp.s
 
 # target to generate assembly for a file
 image.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/image.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/image.cpp.s
 .PHONY : image.cpp.s
 
 json_loader.o: json_loader.cpp.o
@@ -213,7 +226,7 @@ json_loader.o: json_loader.cpp.o
 
 # target to build an object file
 json_loader.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/json_loader.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/json_loader.cpp.o
 .PHONY : json_loader.cpp.o
 
 json_loader.i: json_loader.cpp.i
@@ -221,7 +234,7 @@ json_loader.i: json_loader.cpp.i
 
 # target to preprocess a source file
 json_loader.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/json_loader.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/json_loader.cpp.i
 .PHONY : json_loader.cpp.i
 
 json_loader.s: json_loader.cpp.s
@@ -229,7 +242,7 @@ json_loader.s: json_loader.cpp.s
 
 # target to generate assembly for a file
 json_loader.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/json_loader.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/json_loader.cpp.s
 .PHONY : json_loader.cpp.s
 
 raytracer.o: raytracer.cpp.o
@@ -237,7 +250,7 @@ raytracer.o: raytracer.cpp.o
 
 # target to build an object file
 raytracer.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/raytracer.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/raytracer.cpp.o
 .PHONY : raytracer.cpp.o
 
 raytracer.i: raytracer.cpp.i
@@ -245,7 +258,7 @@ raytracer.i: raytracer.cpp.i
 
 # target to preprocess a source file
 raytracer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/raytracer.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/raytracer.cpp.i
 .PHONY : raytracer.cpp.i
 
 raytracer.s: raytracer.cpp.s
@@ -253,7 +266,7 @@ raytracer.s: raytracer.cpp.s
 
 # target to generate assembly for a file
 raytracer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/raytracer.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/raytracer.cpp.s
 .PHONY : raytracer.cpp.s
 
 shapes.o: shapes.cpp.o
@@ -261,7 +274,7 @@ shapes.o: shapes.cpp.o
 
 # target to build an object file
 shapes.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/shapes.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/shapes.cpp.o
 .PHONY : shapes.cpp.o
 
 shapes.i: shapes.cpp.i
@@ -269,7 +282,7 @@ shapes.i: shapes.cpp.i
 
 # target to preprocess a source file
 shapes.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/shapes.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/shapes.cpp.i
 .PHONY : shapes.cpp.i
 
 shapes.s: shapes.cpp.s
@@ -277,7 +290,7 @@ shapes.s: shapes.cpp.s
 
 # target to generate assembly for a file
 shapes.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracing_Test.dir/build.make CMakeFiles/Raytracing_Test.dir/shapes.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Raytracer.dir/build.make CMakeFiles/Raytracer.dir/shapes.cpp.s
 .PHONY : shapes.cpp.s
 
 # Help Target
@@ -289,7 +302,8 @@ help:
 	@echo "... codegen"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... Raytracing_Test"
+	@echo "... export"
+	@echo "... Raytracer"
 	@echo "... acceleration.o"
 	@echo "... acceleration.i"
 	@echo "... acceleration.s"

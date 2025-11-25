@@ -1,0 +1,38 @@
+Camera class implemented 
+Ppm image reader implemented
+
+Shapes class and intersection check function implemented 
+Architecture BVH implemented
+
+
+Features from Module1 and Module2 both assembled
+antialiasing implemented with jittered sampling for each pixel
+Textures implemented. Texture files are in the Textures folder
+
+
+
+
+
+
+Correction while integrating:
+
+Cube scale: -1 1 in blender but it was 0,1 in my code so I had to scale it up 
+
+2.  Local color needs to be scaled down by reflectivity and refractivity
+
+3. Sum all the colours from multiples samples in a pixel, average them and clamp. Instead of clamping each sample before even averaging them. 
+
+4. Jittered sampling for each pixel  
+
+
+pixelToRay used to take tuple<int, int> and it truncates the jittered sampling values. For example, (5.3, 5.2) is converted to (5,5). So I changed it to tuple <float, float>
+
+
+
+Modified BVH class because I need it to support tree structure intersection and linear intersection to see how much the intersection can help
+
+
+In exporter.py, for sphere, changed 'radius': obj.scale.x, to 'radius': obj.dimensions.x / 2.0 for correct dimension calculation 
+
+
+Stored roughness instead of just shininess for distributed raytracing

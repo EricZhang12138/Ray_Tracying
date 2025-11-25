@@ -6,13 +6,60 @@
 #include "light.hpp"
 #include "material.hpp"
 #include "acceleration.hpp"
-
+#include <cstring> // for strcmp
 #include <iostream>
 #include <vector>
 #include <memory>
 #include <cmath>
-#include <random>
 #include <algorithm>
+
+
+
+Color compute_pixel_color(
+    int x, int y, 
+    int samples_sqrt, 
+    Camera& camera, 
+    BVH& bvh, 
+    const std::vector<Light>& lights, 
+    bool use_bvh,
+    std::mt19937& gen,
+    std::uniform_real_distribution<double>& dist
+) {
+    // Optimization: If samples is 1, shoot one ray through the center
+    if (samples_sqrt <= 1) {
+        // Pixel center is x + 0.5, y + 0.5
+        auto [origin, direction] = camera.pixelToRay({x + 0.5f, y + 0.5f});
+        Ray ray = {origin, direction};
+        return Trace(ray, bvh, lights, 0, use_bvh, gen, dist);
+    }
+
+    Color totalColor = {0.0f, 0.0f, 0.0f};
+    int total_samples = samples_sqrt * samples_sqrt;
+
+    // Stratified Sampling Loop (Jittering)
+    for (int j = 0; j < samples_sqrt; ++j) { // y-subpixel
+        for (int i = 0; i < samples_sqrt; ++i) { // x-subpixel
+            
+            // Get a random offset [0, 1)
+            double random_offset_x = dist(gen); 
+            double random_offset_y = dist(gen); 
+
+            // Map to the specific sub-grid
+            double sample_x = (i + random_offset_x) / samples_sqrt;
+            double sample_y = (j + random_offset_y) / samples_sqrt;
+
+            // Generate ray
+            auto [origin, direction] = camera.pixelToRay({x + sample_x, y + sample_y});
+            Ray ray = {origin, direction};
+
+            // Accumulate
+            totalColor = totalColor + Trace(ray, bvh, lights, 0, use_bvh, gen, dist);
+        }
+    }
+
+    // Average the result
+    return totalColor / (float)total_samples;
+}
 
 // === Vector Math Helpers ===
 // A small namespace to hold the vector math your shade function will need.
@@ -93,6 +140,27 @@ namespace VecMath {
         
         return {origin, normalize(T_dir)};
     }
+    // Used for Light sampling and Glossy Reflection fuzz
+    inline std::array<float, 3> random_in_unit_sphere(std::mt19937& gen, std::uniform_real_distribution<double>& dist) {
+        while (true) {
+            // Generate x, y, z in range [-1, 1]
+            float r1 = (float)dist(gen);
+            float r2 = (float)dist(gen);
+            float r3 = (float)dist(gen);
+            
+            std::array<float, 3> p = {
+                2.0f * r1 - 1.0f, 
+                2.0f * r2 - 1.0f, 
+                2.0f * r3 - 1.0f
+            };
+
+            // Check if point is inside sphere (length squared < 1)
+            if (dot(p, p) < 1.0f) {
+                return p;
+            }
+            // If outside, try again (Rejection Sampling)
+        }
+    }
 
 } // namespace VecMath
 using namespace VecMath;
@@ -105,87 +173,91 @@ Color shade(
     const Hit& hit, 
     const Ray& viewRay, 
     const std::vector<Light>& lights,
-    BVH& bvh // Non-const because your BVH::intersect is non-const
+    BVH& bvh, 
+    bool use_bvh,
+    std::mt19937& gen,                      // Passed by Reference
+    std::uniform_real_distribution<double>& dist // Passed by Reference
 ) {
-    // 1. Get the material from the hit object
     Material mat = hit.shape->material;
-    
-    // 2. Get the base diffuse color for this point
     Color base_diffuse_color = mat.getDiffuseColor(hit.u, hit.v); 
 
-    // 3. Start with the Ambient term
+    // Ambient Term
     Color final_color = base_diffuse_color * mat.k_ambient;
 
-    // 4. Calculate View Vector (V)
-    // Vector from the hit point TO the camera (ray origin)
+    // View Vector (V)
     std::array<float, 3> V = normalize(sub(viewRay.origin, hit.intersection_point));
 
-    // 5. Loop through every light to add its contribution
     for (const Light& light : lights) {
         
-        // 6. Calculate Light Vector (L)
-        std::array<float, 3> light_vec = sub(light.location, hit.intersection_point);
-        float light_distance = std::sqrt(dot(light_vec, light_vec));
-        // Avoid division by zero if light is at the hit point
-        if (light_distance < 1e-6f) continue; 
-        std::array<float, 3> L = normalize(light_vec);
-
-        // 7. --- Check for Shadows ---
-        // Create a shadow ray from the hit point towards the light
-
-
-        /*float is_normalised = hit.normal[0]*hit.normal[0] + hit.normal[1]*hit.normal[1] + hit.normal[2]*hit.normal[2];
-        if (is_normalised != 1){
-            std::cerr << "Error: normal is not normalised!!!!!"<< "normal is "<< is_normalised << std::endl;
-            exit(1);
-        }*/
-
-        Ray shadowRay;
-        // Start the ray slightly off the surface to avoid "shadow acne"
-        shadowRay.origin = add(hit.intersection_point, mult(hit.normal, 1e-4f));
-        shadowRay.direction = L;
-
-        // Trace the shadow ray
-        // Note: Your BVH::intersect clears its temp_hit_vec, so this is safe
-        Hit shadow_hit = bvh.intersect(shadowRay, bvh.root); 
+        // --- SOFT SHADOW CALCULATION ---
+        float visibility = 0.0f;
         
-        // Check if the ray hit something, and if that hit is *between* us and the light
-        if (shadow_hit.shape != nullptr && shadow_hit.t < light_distance && shadow_hit.t > 1e-4f) {
-            continue; // This light is blocked, skip to the next light
+        // Settings: More samples = smoother shadows but slower
+        // For 'distributed' raytracing, we usually take multiple samples per light.
+        // If radius is 0, we can optimize to 1 sample (hard shadow).
+        int shadow_samples = (light.radius > 0.0f) ? 16 : 1; 
+
+        for (int s = 0; s < shadow_samples; ++s) {
+            std::array<float, 3> target_light_pos = light.location;
+
+            // If light has radius, jitter the target position
+            if (light.radius > 0.0f) {
+                std::array<float, 3> random_offset = VecMath::random_in_unit_sphere(gen, dist);
+                // Scale offset by radius
+                random_offset = mult(random_offset, light.radius);
+                target_light_pos = add(target_light_pos, random_offset);
+            }
+
+            // Vector to this specific point on the light
+            std::array<float, 3> light_vec = sub(target_light_pos, hit.intersection_point);
+            float light_dist = std::sqrt(dot(light_vec, light_vec));
+            std::array<float, 3> L_sample = normalize(light_vec);
+
+            // Shadow Ray
+            Ray shadowRay;
+            shadowRay.origin = add(hit.intersection_point, mult(hit.normal, 1e-4f));
+            shadowRay.direction = L_sample;
+
+            Hit shadow_hit = bvh.get_intersection(shadowRay, use_bvh); 
+            
+            // Check visibility
+            if (!shadow_hit.shape || shadow_hit.t > light_dist) {
+                visibility += 1.0f;
+            }
         }
 
-        // --- If not shadowed, continue with shading ---
+        // Average the visibility (0.0 to 1.0)
+        visibility /= (float)shadow_samples;
 
-        // 8. Calculate Diffuse Term
+        // Optimization: If completely in shadow, skip shading math
+        if (visibility <= 0.0f) continue;
+
+        // --- STANDARD BLINN-PHONG (Using center of light) ---
+        // We calculate lighting based on the main light direction to keep it stable
+        std::array<float, 3> light_vec_center = sub(light.location, hit.intersection_point);
+        float dist_sq = dot(light_vec_center, light_vec_center);
+        float light_distance = std::sqrt(dist_sq);
+        std::array<float, 3> L = normalize(light_vec_center);
+
+        // Diffuse
         float N_dot_L = std::max(0.0f, dot(hit.normal, L));
         Color diffuse = base_diffuse_color * N_dot_L;
 
-        // 9. Calculate Specular Term (Blinn-Phong)
-        std::array<float, 3> H = normalize(add(L, V)); // Halfway vector
+        // Specular
+        std::array<float, 3> H = normalize(add(L, V)); 
         float N_dot_H = std::max(0.0f, dot(hit.normal, H));
         float spec_intensity = std::pow(N_dot_H, mat.shininess);
         Color specular = mat.specular_color * spec_intensity;
 
-        // 10. Combine with light color and attenuation (1/d^2)
-        //float attenuation = light.intensity / (light_distance * light_distance);
-        // More aggressive attenuation
-        float attenuation = 0.2f * light.intensity / (1.0f + light_distance + light_distance * light_distance);
-        Color light_color = {light.color[0], light.color[1], light.color[2]};
+        // Attenuation
+        float attenuation = 0.15f * light.intensity / (1.0f + light_distance + dist_sq);
+        Color light_color_vec = {light.color[0], light.color[1], light.color[2]};
 
-        /*final_color = final_color + (light_color * (diffuse * mat.k_diffuse + specular * mat.k_specular) * attenuation);
-        // Clamp each component
-        final_color.r = std::min(1.0f, final_color.r);
-        final_color.g = std::min(1.0f, final_color.g);
-        final_color.b = std::min(1.0f, final_color.b);*/
+        // Combine
+        Color contribution = light_color_vec * (diffuse * mat.k_diffuse + specular * mat.k_specular) * attenuation;
 
-        Color light_contribution = light_color * (diffuse * mat.k_diffuse + specular * mat.k_specular) * attenuation;
-
-        // Clamp each component
-        /*light_contribution.r = std::min(1.0f, light_contribution.r);
-        light_contribution.g = std::min(1.0f, light_contribution.g);
-        light_contribution.b = std::min(1.0f, light_contribution.b);*/
-
-        final_color = final_color + light_contribution;
+        // APPLY VISIBILITY
+        final_color = final_color + (contribution * visibility);
     }
     
     return final_color;
@@ -197,77 +269,101 @@ Color shade(
  */
 Color Trace(
     const Ray& ray, 
-    BVH& bvh, // Non-const to pass to shade()
+    BVH& bvh, 
     const std::vector<Light>& lights, 
-    int depth
+    int depth,
+    bool use_bvh,
+    std::mt19937& gen,                      // Passed by Reference
+    std::uniform_real_distribution<double>& dist // Passed by Reference
 ) {
-    // 1. Base Case: Stop recursion
     if (depth > MAX_RECURSION_DEPTH) {
-        return {0, 0, 0}; // Return black
+        return {0, 0, 0}; 
     }
 
-    // 2. Find closest intersection
-    Hit hit = bvh.intersect(ray, bvh.root);
+    Hit hit = bvh.get_intersection(ray, use_bvh);
 
-    // 3. If ray hits nothing, return background color
     if (!hit.shape) {
-        return {0.1f, 0.1f, 0.1f}; // Dark grey background
+        return {0.1f, 0.1f, 0.1f}; // Background
     }
 
-    // 4. If it hits, get the local color first
-    Color localColor = shade(hit, ray, lights, bvh);
+    // 1. Local Shading (includes Soft Shadows now)
+    Color localColor = shade(hit, ray, lights, bvh, use_bvh, gen, dist);
 
-    // 5. --- Handle Recursion (The Whitted-Style part) ---
     Material mat = hit.shape->material;
     Color reflectedColor = {0, 0, 0};
     Color refractedColor = {0, 0, 0};
 
-    // --- Reflection Calculation ---
+    // 2. Reflection (Glossy)
     if (mat.reflectivity > 0.0f) {
-        // 1. Calculate reflection ray
         Ray reflectionRay = VecMath::createReflectionRay(ray, hit);
         
-        // 2. reflectedColor = Trace(...)
-        reflectedColor = Trace(reflectionRay, bvh, lights, depth + 1);
-    }
+        // --- GLOSSY PERTURBATION ---
+        if (mat.roughness > 0.0f) {
+            std::array<float, 3> fuzz = VecMath::random_in_unit_sphere(gen, dist);
+            
+            // Add fuzz scaled by roughness
+            // Result = Normalized(PerfectVector + (RandomSphere * Roughness))
+            std::array<float, 3> perturbed = add(reflectionRay.direction, mult(fuzz, mat.roughness));
+            reflectionRay.direction = normalize(perturbed);
 
-    // --- Refraction Calculation ---
-    if (mat.transparency > 0.0f) {
-        // 1. Calculate refraction ray (using Snell's Law)
-        Ray refractionRay = VecMath::createRefractionRay(ray, hit, mat.refractive_index);
+            // Check: Did we perturb it so much it points INTO the surface?
+            // If dot(Dir, Normal) < 0, it's going inside. 
+            if (dot(reflectionRay.direction, hit.normal) < 0.0f) {
+                // Determine what to do: absorb the ray (black) or re-sample.
+                // For simplicity, we just absorb it (return black for this bounce).
+                reflectionRay.direction = {0,0,0}; // Invalid ray
+            }
+        }
 
-        // Check for valid ray (i.e., no Total Internal Reflection)
-        // We check direction, as origin might be valid
-        if (VecMath::dot(refractionRay.direction, refractionRay.direction) > 1e-6f) {
-            // 2. refractedColor = Trace(...)
-            refractedColor = Trace(refractionRay, bvh, lights, depth + 1);
+        // Only trace if direction is valid
+        if (dot(reflectionRay.direction, reflectionRay.direction) > 0.001f) {
+            reflectedColor = Trace(reflectionRay, bvh, lights, depth + 1, use_bvh, gen, dist);
         }
     }
 
-        // 6. Return the final combined color
-        // Scale localColor by the energy that isn't reflected or refracted
-        float local_contribution = 1.0f - mat.reflectivity - mat.transparency;
+    // 3. Refraction (Standard - Glossy transmission is harder, keeping it simple)
+    if (mat.transparency > 0.0f) {
+        Ray refractionRay = VecMath::createRefractionRay(ray, hit, mat.refractive_index);
+        
+        // Check for TIR (invalid ray)
+        if (dot(refractionRay.direction, refractionRay.direction) > 1e-6f) {
+             // Pass gen/dist down, even if we don't use them for glossy refraction yet
+            refractedColor = Trace(refractionRay, bvh, lights, depth + 1, use_bvh, gen, dist);
+        }
+    }
 
-        // Clamp this to 0 in case reflectivity/transparency add up to > 1
-        local_contribution = std::max(0.0f, local_contribution); 
+    float local_contribution = std::max(0.0f, 1.0f - mat.reflectivity - mat.transparency);
 
-        return (local_contribution * localColor) + 
-            (mat.reflectivity * reflectedColor) + 
-            (mat.transparency * refractedColor);
+    return (local_contribution * localColor) + 
+           (mat.reflectivity * reflectedColor) + 
+           (mat.transparency * refractedColor);
 }
 
 
-/**
- * @brief Main function to run the raytracer.
- */
-int main() {
+
+
+int main(int argc, char* argv[]) {
     try {
         std::string scene_file = "/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/ASCII/scene.json";
+        
+        // --- Command Line Parsing ---
+        bool use_bvh = false;    // Default: false (as per your code)
+        int n_samples_sqrt = 4;  // Default: 4x4 samples (as per your code)
 
-        // 1. Load Camera (Module 1)
+        for (int i = 1; i < argc; ++i) {
+            // Check for BVH flag
+            if (std::strcmp(argv[i], "-bvh") == 0) {
+                use_bvh = true;
+            }
+            // Check for Samples flag
+            else if (std::strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
+                n_samples_sqrt = std::atoi(argv[i + 1]);
+                i++; // Skip next arg
+            }
+        }
+        
+        // 1. Load Camera
         Camera camera(scene_file);
-        // Note: You must implement getResolution() to return width/height
-        // Assuming getResolution() returns std::tuple<int, int>
         auto [width, height] = camera.getResolution(); 
         if (width == 0 || height == 0) {
             std::cerr << "Error: Camera resolution is 0. Check scene.json." << std::endl;
@@ -275,12 +371,11 @@ int main() {
         }
         Image outputImage(width, height);
 
-        // 2. Load Scene Data (Modules 1, 2, 3)
+        // 2. Load Scene Data
         std::vector<Light> lights = load_lights_from_json(scene_file);
         std::vector<std::unique_ptr<Shapes>> shapes = load_shapes_from_json(scene_file);
         
-        // 3. Build Acceleration Structure (Module 2)
-        // Create a vector of raw pointers for the BVH
+        // 3. Build Acceleration Structure
         std::vector<Shapes*> shape_ptrs;
         for (const auto& shape : shapes) {
             shape_ptrs.push_back(shape.get());
@@ -290,72 +385,38 @@ int main() {
         }
         
         BVH bvh(shape_ptrs);
-        // We must manually pass bvh.root to intersect, as per your acceleration.cpp
-        // You MUST make 'root' public in BVH or add a getRoot() method.
-        // For now, I'll assume it's public.
-        std::cout << "BVH built." << std::endl;
+        std::cout << "BVH built. Mode: " << (use_bvh ? "ON" : "OFF") << std::endl;
 
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> dist(0.0, 1.0);
+
         // 4. Main Render Loop
-        std::cout << "Rendering " << width << "x" << height << "..." << std::endl;
+        std::cout << "Rendering " << width << "x" << height << " with " 
+                  << n_samples_sqrt << "x" << n_samples_sqrt << " samples..." << std::endl;
+
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 
+                // CALL NEW FUNCTION HERE
+                Color Averaged_color = compute_pixel_color(
+                    x, y, 
+                    n_samples_sqrt, 
+                    camera, bvh, lights, use_bvh, 
+                    gen, dist
+                );
 
-            // 1. Define the grid size. (e.g., 3x3 grid = 9 total samples)
-            const int n_samples_sqrt = 4; 
-            const int total_samples = n_samples_sqrt * n_samples_sqrt;
+                // 5. Clamp the final averaged color
+                Averaged_color.r = std::max(0.0f, std::min(1.0f, Averaged_color.r));
+                Averaged_color.g = std::max(0.0f, std::min(1.0f, Averaged_color.g));
+                Averaged_color.b = std::max(0.0f, std::min(1.0f, Averaged_color.b));
 
-            // 2. Initialize accumulator color to black
-            // (Your struct default {0,0,0} handles this, but being explicit is good)
-            Color totalColor = {0.0f, 0.0f, 0.0f};
-
-            // 3. Loop over the grid cells
-            for (int j = 0; j < n_samples_sqrt; ++j) { // y-cell
-                for (int i = 0; i < n_samples_sqrt; ++i) { // x-cell
-                    
-                    // Get a random offset *within* this cell
-                    double random_offset_x = dist(gen); // random val [0.0, 1.0)
-                    double random_offset_y = dist(gen); // random val [0.0, 1.0)
-
-                    // Calculate the sample's position in the pixel
-                    // (i + rand_x) / 3.0 gives a jittered value in the i-th column
-                    double sample_x = (i + random_offset_x) / n_samples_sqrt;
-                    double sample_y = (j + random_offset_y) / n_samples_sqrt;
-
-                    // Generate the ray for this specific sample
-                    auto [origin, direction] = camera.pixelToRay({x + sample_x, y + sample_y});
-                    Ray ray = {origin, direction};
-
-                    // b. Get Color (Module 3) and accumulate
-                    // (Using your Color::operator+)
-                    totalColor = totalColor + Trace(ray, bvh, lights, 0);
-                }
-            }
-
-            // 4. Average the final color
-            // (Using your Color::operator/)
-            Color Averaged_color = totalColor / (float)total_samples;
-
-            // Apply gamma correction (power of 1.0/2.2)
-            // This converts the linear color to sRGB space for your monitor.
-            /*Averaged_color.r = std::pow(Averaged_color.r, 1.0f / 2.2f);
-            Averaged_color.g = std::pow(Averaged_color.g, 1.0f / 2.2f);
-            Averaged_color.b = std::pow(Averaged_color.b, 1.0f / 2.2f);*/
-
-            // 5. Clamp the final averaged color
-            Averaged_color.r = std::max(0.0f, std::min(1.0f, Averaged_color.r));
-            Averaged_color.g = std::max(0.0f, std::min(1.0f, Averaged_color.g));
-            Averaged_color.b = std::max(0.0f, std::min(1.0f, Averaged_color.b));
-
-            // 6. Write to the image
-            outputImage.setPixel(x, y, 
-                static_cast<int>(Averaged_color.r * 255.999),
-                static_cast<int>(Averaged_color.g * 255.999),
-                static_cast<int>(Averaged_color.b * 255.999)
-            );
+                // 6. Write to the image
+                outputImage.setPixel(x, y, 
+                    static_cast<int>(Averaged_color.r * 255.999),
+                    static_cast<int>(Averaged_color.g * 255.999),
+                    static_cast<int>(Averaged_color.b * 255.999)
+                );
             }
             // Print progress
             if (y > 0 && y % 100 == 0) {
@@ -364,7 +425,7 @@ int main() {
         }
         std::cout << "Rendering complete.\n";
 
-        // 5. Save Final Image (Module 1)
+        // 5. Save Final Image
         outputImage.write("output.ppm");
 
     } catch (const std::exception& e) {

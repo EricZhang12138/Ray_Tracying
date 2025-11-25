@@ -19,6 +19,8 @@ public:
     node root;
     BVH(const std::vector<Shapes*>& shapes_ptrs); 
     Hit intersect(Ray ray, node& root);
+    Hit intersect_linear(const Ray& ray);
+    Hit get_intersection(const Ray& ray, bool use_acceleration);
 private:
     void construct_tree(int start, int end, node& root);
     

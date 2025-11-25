@@ -1,8 +1,9 @@
+
 # Specify the minimum version of CMake required
 cmake_minimum_required(VERSION 4.1)
 
 # Define the project name (this will be the name of your executable)
-project(Raytracing_Test LANGUAGES CXX)
+project(Raytracer LANGUAGES CXX)
 
 # Set the C++ standard required (e.g., C++17)
 # nlohmann/json requires at least C++11, C++17 is a safe bet for modern features.
@@ -48,3 +49,44 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 # Print a message when configuration is done
 message(STATUS "CMake configuration complete for ${testing_intersection}")
+
+
+
+
+# 1. Search for the Blender executable
+find_program(BLENDER_EXECUTABLE
+    NAMES blender Blender
+    PATHS 
+        # MacOS default path (The executable inside the .app package)
+        "/Applications/Blender.app/Contents/MacOS"
+        
+        # Common Linux paths
+        "/usr/bin"
+        "/usr/local/bin"
+        "/snap/bin"
+        
+        # Common Windows paths (Version numbers may vary)
+        "C:/Program Files/Blender Foundation/Blender 4.0"
+        "C:/Program Files/Blender Foundation/Blender 3.6"
+    
+    DOC "Path to the Blender executable"
+)
+
+# 2. Check if found
+if(BLENDER_EXECUTABLE)
+    message(STATUS "Found Blender: ${BLENDER_EXECUTABLE}")
+else()
+    message(WARNING "Blender not found. You will need to export scenes manually.")
+endif()
+
+set(BLEND_FILES "${CMAKE_SOURCE_DIR}/../Blend/scene.blend")
+set(EXPORTER_FILES "${CMAKE_SOURCE_DIR}/../Blend/exporter.py")
+
+
+if(BLENDER_EXECUTABLE)
+    add_custom_target(export
+        COMMAND ${BLENDER_EXECUTABLE} ${BLEND_FILES} --background --python ${EXPORTER_FILES}
+        COMMENT "Running Blender Export Script..."
+        VERBATIM
+    )
+endif()

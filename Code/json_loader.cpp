@@ -53,6 +53,9 @@ Material parse_material(const json& mat_json) {
         roughness = std::max(0.01f, roughness); // Avoid divide-by-zero
         mat.shininess = 500000.0f / (roughness * roughness);
 
+
+        mat.roughness = mat_json.value("roughness", 0.0f);
+
         // --- 2. Whitted-Style Properties ---
         mat.reflectivity = mat_json.value("reflectivity", 0.0f);
         mat.transparency = mat_json.value("transparency", 0.0f);
@@ -120,12 +123,15 @@ std::vector<Light> load_lights_from_json(const std::string& filename) {
                 std::array<float, 3> color = light_json["color"].get<std::array<float, 3>>();
                 float intensity = light_json["intensity"].get<float>();
 
+                // Default to 0.0f if the key is missing (backward compatibility)
+                float radius = light_json.value("radius", 0.0f);
+
                 if (intensity <= 0) {
                      std::cerr << "Warning: Skipping light with non-positive intensity." << std::endl;
                      continue;
                 }
                 
-                loaded_lights.emplace_back(location, color, intensity);
+                loaded_lights.emplace_back(location, color, intensity, radius);
 
             } catch (json::exception& e) {
                 std::cerr << "Warning: Error parsing light entry: " << e.what() << std::endl;
