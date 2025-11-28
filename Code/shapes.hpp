@@ -25,6 +25,7 @@ public:
 struct Ray{
   std::array<float,3> origin;
   std::array<float,3> direction;  
+  float time = 0.0f; // NEW: Time stamp for motion blur (0.0 to 1.0)
 };
 
 struct AABB {
@@ -62,6 +63,8 @@ public:
     virtual AABB get_bounding_box() const = 0;
     std::string type = "Shape";
     Material material;
+
+    
     
 };
 
@@ -82,12 +85,24 @@ class Sphere : public Shapes{
 private:
     std::array<float, 3> center;  // Sphere center position
     float radius;                  // Sphere radius
+    bool is_moving = false;
+    std::array<float, 3> velocity = {0,0,0}; // Movement vector during shutter open
     
 public:
     // Constructor
-    Sphere(const std::array<float, 3>& c, float r, const Material& mat);
+    Sphere(const std::array<float, 3>& c, float r, const Material& mat, std::array<float, 3> vel = {0,0,0});
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
+
+    std::array<float, 3> get_center(float time) const {
+        if (!is_moving) return center;
+        return {
+            center[0] + velocity[0] * time,
+            center[1] + velocity[1] * time,
+            center[2] + velocity[2] * time
+        };
+    }
+    
 
 
 };

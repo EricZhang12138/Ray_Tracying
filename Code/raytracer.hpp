@@ -26,7 +26,8 @@ Color shade(
     BVH& bvh, // Non-const because your BVH::intersect is non-const
     bool use_bvh,
     std::mt19937& gen,                      // <--- ADD THIS
-    std::uniform_real_distribution<double>& dist
+    std::uniform_real_distribution<double>& dist,
+    int light_samples
 );
 
 /**
@@ -46,5 +47,6 @@ Color Trace(
     int depth,
     bool use_bvh,
     std::mt19937& gen,                     
-    std::uniform_real_distribution<double>& dist 
+    std::uniform_real_distribution<double>& dist,
+    int light_samples
 );

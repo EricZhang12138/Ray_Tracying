@@ -23,14 +23,20 @@ Color compute_pixel_color(
     const std::vector<Light>& lights, 
     bool use_bvh,
     std::mt19937& gen,
-    std::uniform_real_distribution<double>& dist
+    std::uniform_real_distribution<double>& dist,
+    int light_samples
 ) {
     // Optimization: If samples is 1, shoot one ray through the center
     if (samples_sqrt <= 1) {
         // Pixel center is x + 0.5, y + 0.5
-        auto [origin, direction] = camera.pixelToRay({x + 0.5f, y + 0.5f});
+        //auto [origin, direction] = camera.pixelToRay({x + 0.5f, y + 0.5f});
+        auto [origin, direction] = camera.pixelToRay_thin_lens({x + 0.5f, y + 0.5f}, gen, dist);
+
         Ray ray = {origin, direction};
-        return Trace(ray, bvh, lights, 0, use_bvh, gen, dist);
+
+        ray.time = (float)dist(gen);
+
+        return Trace(ray, bvh, lights, 0, use_bvh, gen, dist, light_samples);
     }
 
     Color totalColor = {0.0f, 0.0f, 0.0f};
@@ -49,11 +55,13 @@ Color compute_pixel_color(
             double sample_y = (j + random_offset_y) / samples_sqrt;
 
             // Generate ray
-            auto [origin, direction] = camera.pixelToRay({x + sample_x, y + sample_y});
+            auto [origin, direction] = camera.pixelToRay_thin_lens({x + sample_x, y + sample_y}, gen, dist);
+            //auto [origin, direction] = camera.pixelToRay({x + sample_x, y + sample_y});
             Ray ray = {origin, direction};
+            ray.time = (float)dist(gen);
 
             // Accumulate
-            totalColor = totalColor + Trace(ray, bvh, lights, 0, use_bvh, gen, dist);
+            totalColor = totalColor + Trace(ray, bvh, lights, 0, use_bvh, gen, dist, light_samples);
         }
     }
 
@@ -176,7 +184,8 @@ Color shade(
     BVH& bvh, 
     bool use_bvh,
     std::mt19937& gen,                      // Passed by Reference
-    std::uniform_real_distribution<double>& dist // Passed by Reference
+    std::uniform_real_distribution<double>& dist, // Passed by Reference
+    int light_samples
 ) {
     Material mat = hit.shape->material;
     Color base_diffuse_color = mat.getDiffuseColor(hit.u, hit.v); 
@@ -195,7 +204,7 @@ Color shade(
         // Settings: More samples = smoother shadows but slower
         // For 'distributed' raytracing, we usually take multiple samples per light.
         // If radius is 0, we can optimize to 1 sample (hard shadow).
-        int shadow_samples = (light.radius > 0.0f) ? 16 : 1; 
+        int shadow_samples = (light.radius > 0.0f) ? light_samples : 1; 
 
         for (int s = 0; s < shadow_samples; ++s) {
             std::array<float, 3> target_light_pos = light.location;
@@ -274,7 +283,8 @@ Color Trace(
     int depth,
     bool use_bvh,
     std::mt19937& gen,                      // Passed by Reference
-    std::uniform_real_distribution<double>& dist // Passed by Reference
+    std::uniform_real_distribution<double>& dist, // Passed by Reference
+    int light_samples
 ) {
     if (depth > MAX_RECURSION_DEPTH) {
         return {0, 0, 0}; 
@@ -287,7 +297,7 @@ Color Trace(
     }
 
     // 1. Local Shading (includes Soft Shadows now)
-    Color localColor = shade(hit, ray, lights, bvh, use_bvh, gen, dist);
+    Color localColor = shade(hit, ray, lights, bvh, use_bvh, gen, dist, light_samples);
 
     Material mat = hit.shape->material;
     Color reflectedColor = {0, 0, 0};
@@ -317,7 +327,7 @@ Color Trace(
 
         // Only trace if direction is valid
         if (dot(reflectionRay.direction, reflectionRay.direction) > 0.001f) {
-            reflectedColor = Trace(reflectionRay, bvh, lights, depth + 1, use_bvh, gen, dist);
+            reflectedColor = Trace(reflectionRay, bvh, lights, depth + 1, use_bvh, gen, dist, light_samples);
         }
     }
 
@@ -328,7 +338,7 @@ Color Trace(
         // Check for TIR (invalid ray)
         if (dot(refractionRay.direction, refractionRay.direction) > 1e-6f) {
              // Pass gen/dist down, even if we don't use them for glossy refraction yet
-            refractedColor = Trace(refractionRay, bvh, lights, depth + 1, use_bvh, gen, dist);
+            refractedColor = Trace(refractionRay, bvh, lights, depth + 1, use_bvh, gen, dist, light_samples);
         }
     }
 
@@ -349,6 +359,7 @@ int main(int argc, char* argv[]) {
         // --- Command Line Parsing ---
         bool use_bvh = false;    // Default: false (as per your code)
         int n_samples_sqrt = 4;  // Default: 4x4 samples (as per your code)
+        int light_samples = 1;
 
         for (int i = 1; i < argc; ++i) {
             // Check for BVH flag
@@ -359,6 +370,10 @@ int main(int argc, char* argv[]) {
             else if (std::strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
                 n_samples_sqrt = std::atoi(argv[i + 1]);
                 i++; // Skip next arg
+            }
+            else if(std::strcmp(argv[i], "-light_sample") == 0 && i+1 < argc){
+                light_samples = std::atoi(argv[i+1]);
+                i++;
             }
         }
         
@@ -403,7 +418,7 @@ int main(int argc, char* argv[]) {
                     x, y, 
                     n_samples_sqrt, 
                     camera, bvh, lights, use_bvh, 
-                    gen, dist
+                    gen, dist, light_samples
                 );
 
                 // 5. Clamp the final averaged color

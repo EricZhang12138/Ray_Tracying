@@ -1,1 +1,0 @@
-/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/Raytracer.dir/raytracer.cpp.o CMakeFiles/Raytracer.dir/camera.cpp.o CMakeFiles/Raytracer.dir/shapes.cpp.o CMakeFiles/Raytracer.dir/image.cpp.o CMakeFiles/Raytracer.dir/acceleration.cpp.o CMakeFiles/Raytracer.dir/json_loader.cpp.o -o Raytracer

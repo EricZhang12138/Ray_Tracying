@@ -1,4 +1,0 @@
-/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles/Raytracer.dir
-/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles/export.dir
-/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles/edit_cache.dir
-/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/Code/build/CMakeFiles/rebuild_cache.dir

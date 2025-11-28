@@ -6,9 +6,12 @@
 #include <string>
 #include <tuple>
 #include <array>
+#include <random>
 
 class Camera {
 public:
+    float aperture = 0.0f;  // 0 = pinhole. Larger = more blur
+    float focus_dist = 10.0f;    // Distance to the plane in perfect focus.
     /**
      * @brief Constructs a Camera object by loading its configuration from a JSON file.
      * The constructor is marked 'explicit' to prevent unintended implicit conversions.
@@ -23,7 +26,8 @@ public:
      * @return A tuple containing the ray's origin (std::array<float, 3>) 
      * and normalized direction (std::array<float, 3>).
      */
-    std::tuple<std::array<float, 3>, std::array<float, 3>> pixelToRay(std::tuple<float, float> pixel);
+    std::tuple<std::array<float, 3>, std::array<float, 3>> pixelToRay_thin_lens(std::tuple<float, float> pixel, std::mt19937& gen, std::uniform_real_distribution<double>& dist);
+    std::tuple<std::array<float,3>, std::array<float,3>> pixelToRay(std::tuple<float,float> pixel);
 
     //functions for testing
     std::tuple<int,int> getResolution()const;
@@ -55,11 +59,3 @@ private:
 };
 
 #endif // CAMERA_HPP
-
-
-
-
-
-
-
-

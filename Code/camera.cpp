@@ -25,6 +25,10 @@ using json = nlohmann::json;
 
             if (camera_data.contains("cameras") && camera_data.contains("render")){
                 focal_length = camera_data["cameras"][0]["focal_length"].get<float>();
+
+                // Read Aperture and Focus Distance (use value() for safety defaults)
+                aperture = camera_data["cameras"][0].value("aperture", 0.0f);
+                focus_dist = camera_data["cameras"][0].value("focus_dist", 10.0f); // Default to something reasonable
                 
                 
                 location = camera_data["cameras"][0]["location"].get<std::array<float, 3>>();
@@ -82,6 +86,97 @@ using json = nlohmann::json;
     result[2] = result_z;
     }
 
+
+std::array<float, 3> random_in_unit_disk(std::mt19937& gen, std::uniform_real_distribution<double>& dist) {
+    while (true) {
+        float x = (float)dist(gen) * 2.0f - 1.0f;
+        float y = (float)dist(gen) * 2.0f - 1.0f;
+        if (x*x + y*y < 1.0f) return {x, y, 0};
+    }
+}
+
+std::tuple<std::array<float,3>, std::array<float,3>> Camera::pixelToRay_thin_lens(
+    std::tuple<float,float> pixel, 
+    std::mt19937& gen, 
+    std::uniform_real_distribution<double>& dist
+) {
+    // 1. Calculate the standard pinhole ray direction (existing logic)
+    float nx = 1 - (std::get<0>(pixel) / (float)std::get<0>(resolution)) * 2;
+    float ny = 1 - (std::get<1>(pixel) / (float)std::get<1>(resolution)) * 2;
+
+    float nx_r = nx * (std::get<0>(sensor_dim) / 2.0f);
+    float ny_r = ny * (std::get<1>(sensor_dim) / 2.0f);
+
+    std::array<float,3> z_dir = normalize(gaze_vec);
+    std::array<float,3> x_dir;
+    cross_product(up_vec, z_dir, x_dir);
+    x_dir = normalize(x_dir);
+    std::array<float,3> y_dir;
+    cross_product(z_dir, x_dir, y_dir);
+    y_dir = normalize(y_dir);
+
+    // M_C2W construction (same as before) ...
+    std::array<std::array<float, 4>, 4> M_C2W = {{
+        {x_dir[0], y_dir[0], z_dir[0], location[0]},
+        {x_dir[1], y_dir[1], z_dir[1], location[1]},
+        {x_dir[2], y_dir[2], z_dir[2], location[2]},
+        {0.0f,     0.0f,     0.0f,     1.0f}
+    }};
+
+    std::array<float, 4> dir_camera = {nx_r, ny_r, focal_length, 0.0f};
+    std::array<float, 3> direction_world;
+    for (int i = 0; i < 3; i++) {
+        direction_world[i] = M_C2W[i][0] * dir_camera[0] + 
+                             M_C2W[i][1] * dir_camera[1] + 
+                             M_C2W[i][2] * dir_camera[2];
+    }
+    direction_world = normalize(direction_world);
+
+    // === NEW LENS LOGIC ===
+    
+    // If aperture is 0, behave like a pinhole
+    if (aperture <= 0.0f) {
+        return std::make_tuple(location, direction_world);
+    }
+
+    // 1. Find the focal point (where the perfect ray hits the focus plane)
+    // P_focus = Origin + (Direction * focus_dist)
+    std::array<float, 3> focus_point = {
+        location[0] + direction_world[0] * focus_dist,
+        location[1] + direction_world[1] * focus_dist,
+        location[2] + direction_world[2] * focus_dist
+    };
+
+    // 2. Jitter the origin on the lens disk
+    std::array<float, 3> rd = random_in_unit_disk(gen, dist);
+    // Scale by aperture radius (aperture parameter is usually diameter, so /2)
+    float lens_radius = aperture / 2.0f;
+    rd[0] *= lens_radius; 
+    rd[1] *= lens_radius;
+
+    // Transform local disk offset (rd) to world space using camera basis vectors
+    std::array<float, 3> offset = {
+        x_dir[0] * rd[0] + y_dir[0] * rd[1],
+        x_dir[1] * rd[0] + y_dir[1] * rd[1],
+        x_dir[2] * rd[0] + y_dir[2] * rd[1]
+    };
+
+    std::array<float, 3> new_origin = {
+        location[0] + offset[0],
+        location[1] + offset[1],
+        location[2] + offset[2]
+    };
+
+    // 3. Calculate new direction: From new origin to the SAME focus point
+    std::array<float, 3> new_direction = {
+        focus_point[0] - new_origin[0],
+        focus_point[1] - new_origin[1],
+        focus_point[2] - new_origin[2]
+    };
+    new_direction = normalize(new_direction);
+
+    return std::make_tuple(new_origin, new_direction);
+}
 
 // --- FIX: Change the parameter to accept floats ---
 std::tuple<std::array<float,3>, std::array<float,3>> Camera::pixelToRay(std::tuple<float,float> pixel){

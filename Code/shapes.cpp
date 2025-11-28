@@ -289,22 +289,26 @@ AABB Plane::get_bounding_box() const {
     return box;
 }
 
- Sphere::Sphere(const std::array<float, 3>& c, float r, const Material& mat) : center(c), radius(r) {
+ Sphere::Sphere(const std::array<float, 3>& c, float r, const Material& mat, std::array<float, 3> vel) : center(c), radius(r) {
     type = "Sphere";
     this -> material = mat;
+    is_moving = (vel[0] != 0 || vel[1] != 0 || vel[2] != 0);
  }
 
+
+
+ 
 
 bool Sphere::intersect(Hit &hit, const Ray &ray) {
     // Sphere equation: |P - C|² = r²
     // Ray equation: P(t) = O + tD
     // Substitute ray into sphere equation and solve for t
-    
-    // Vector from ray origin to sphere center
+    std::array<float, 3> current_center = get_center(ray.time);
+
     std::array<float, 3> oc = {
-        ray.origin[0] - center[0],
-        ray.origin[1] - center[1],
-        ray.origin[2] - center[2]
+        ray.origin[0] - current_center[0],
+        ray.origin[1] - current_center[1],
+        ray.origin[2] - current_center[2]
     };
     
     // Quadratic equation coefficients: at² + bt + c = 0
@@ -354,9 +358,9 @@ bool Sphere::intersect(Hit &hit, const Ray &ray) {
     
     // Calculate normal (vector from center to intersection point)
     std::array<float, 3> normal = {
-        intersection[0] - center[0],
-        intersection[1] - center[1],
-        intersection[2] - center[2]
+        intersection[0] - current_center[0],
+        intersection[1] - current_center[1],
+        intersection[2] - current_center[2]
     };
     
     // Normalize the normal vector
@@ -391,15 +395,18 @@ bool Sphere::intersect(Hit &hit, const Ray &ray) {
 
 
 AABB Sphere::get_bounding_box() const {
+    std::array<float, 3> c0 = get_center(0.0f);
+    std::array<float, 3> c1 = get_center(1.0f);
+
     std::array<float, 3> min_p = {
-        center[0] - radius,
-        center[1] - radius,
-        center[2] - radius
+        std::min(c0[0], c1[0]) - radius,
+        std::min(c0[1], c1[1]) - radius,
+        std::min(c0[2], c1[2]) - radius
     };
     std::array<float, 3> max_p = {
-        center[0] + radius,
-        center[1] + radius,
-        center[2] + radius
+        std::max(c0[0], c1[0]) + radius,
+        std::max(c0[1], c1[1]) + radius,
+        std::max(c0[2], c1[2]) + radius
     };
     return AABB(min_p, max_p);
 }

@@ -178,6 +178,12 @@ std::vector<std::unique_ptr<Shapes>> load_shapes_from_json(const std::string& fi
                 }
                 std::array<float, 3> center = sphere_json["location"].get<std::array<float, 3>>();
                 float radius = sphere_json["radius"].get<float>();
+
+                std::array<float, 3> velocity = {0.0f, 0.0f, 0.0f};
+                if (sphere_json.contains("velocity")) {
+                    velocity = sphere_json["velocity"].get<std::array<float, 3>>();
+                }
+
                 if (radius <= 0) {
                      std::cerr << "Warning: Skipping sphere with non-positive radius." << std::endl;
                      continue;
