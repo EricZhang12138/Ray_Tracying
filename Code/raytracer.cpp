@@ -366,11 +366,13 @@ int main(int argc, char* argv[]) {
             if (std::strcmp(argv[i], "-bvh") == 0) {
                 use_bvh = true;
             }
-            // Check for Samples flag
+
+            // Check for Samples flag, how mnay samples we take for a signle pixel to reduce antialiasing
             else if (std::strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
                 n_samples_sqrt = std::atoi(argv[i + 1]);
                 i++; // Skip next arg
             }
+            // How many samples we take for a single light (light has volume)
             else if(std::strcmp(argv[i], "-light_sample") == 0 && i+1 < argc){
                 light_samples = std::atoi(argv[i+1]);
                 i++;
@@ -441,7 +443,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Rendering complete.\n";
 
         // 5. Save Final Image
-        outputImage.write("output.ppm");
+        outputImage.write("../../Output/output.ppm");
 
     } catch (const std::exception& e) {
         std::cerr << "An error occurred: " << e.what() << std::endl;

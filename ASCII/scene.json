@@ -3,82 +3,100 @@
         {
             "location": [
                 0.0,
-                -18.0,
-                6.0
+                0.0,
+                12.0
             ],
             "gaze_vector": [
                 0.0,
-                0.9659257531166077,
-                -0.25881919264793396
+                0.0,
+                -1.0
             ],
-            "focal_length": 35.0,
+            "focal_length": 50.0,
             "sensor_width": 36.0,
             "sensor_height": 24.0,
             "up_vector": [
                 0.0,
-                0.25881919264793396,
-                0.9659257531166077
-            ]
-        }
-    ],
-    "cubes": [
-        {
-            "translation": [
-                -2.0,
                 1.0,
-                3.0
+                0.0
             ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.3490658402442932
-            ],
-            "scale": 0.7500000596046448,
-            "material": {
-                "diffuse_color": [
-                    0.800000011920929,
-                    0.800000011920929,
-                    0.800000011920929
-                ],
-                "specular_color": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "roughness": 0.10000000149011612,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
-                "reflectivity": 0.800000011920929,
-                "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
-                "texture_file": ""
-            }
+            "aperture": 0.8,
+            "focus_dist": 12.0
         }
     ],
     "planes": [
         {
             "corners": [
                 [
-                    -5.0,
-                    -5.0,
-                    5.0
+                    -10.0,
+                    -3.0,
+                    10.0
                 ],
                 [
-                    5.0,
-                    -5.0,
-                    5.0
+                    10.0,
+                    -3.0,
+                    10.0
                 ],
                 [
-                    -5.0,
-                    5.0,
-                    5.0
+                    10.0,
+                    -3.0,
+                    -20.0
                 ],
                 [
-                    5.0,
-                    5.0,
-                    5.0
+                    -10.0,
+                    -3.0,
+                    -20.0
                 ]
+            ],
+            "material": {
+                "diffuse_color": [
+                    0.8,
+                    0.8,
+                    0.8
+                ],
+                "specular_color": [
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "roughness": 0.5,
+                "k_ambient": 0.1,
+                "k_diffuse": 0.9,
+                "k_specular": 0.3,
+                "reflectivity": 0.0,
+                "transparency": 0.0,
+                "refractive_index": 1.0,
+                "texture_file": ""
+            }
+        }
+    ],
+    "lights": [
+        {
+            "location": [
+                5.0,
+                5.0,
+                10.0
+            ],
+            "intensity": 500.0,
+            "color": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "radius": 0.0
+        }
+    ],
+    "spheres": [
+        {
+            "location": [
+                3.0,
+                1.0,
+                -6.0
+            ],
+            "radius": 1.9999988079071045,
+            "velocity": [
+                0.0,
+                0.0,
+                0.0
             ],
             "material": {
                 "diffuse_color": [
@@ -102,324 +120,68 @@
             }
         },
         {
-            "corners": [
-                [
-                    -5.0,
-                    5.0,
-                    0.0
-                ],
-                [
-                    5.0,
-                    5.0,
-                    0.0
-                ],
-                [
-                    -5.0,
-                    5.0,
-                    10.0
-                ],
-                [
-                    5.0,
-                    5.0,
-                    10.0
-                ]
-            ],
-            "material": {
-                "diffuse_color": [
-                    0.800000011920929,
-                    0.800000011920929,
-                    0.800000011920929
-                ],
-                "specular_color": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "roughness": 0.800000011920929,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
-                "reflectivity": 0.0,
-                "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
-                "texture_file": ""
-            }
-        },
-        {
-            "corners": [
-                [
-                    -5.0,
-                    5.0,
-                    10.0
-                ],
-                [
-                    5.0,
-                    5.0,
-                    10.0
-                ],
-                [
-                    -5.0,
-                    -5.0,
-                    10.0
-                ],
-                [
-                    5.0,
-                    -5.0,
-                    10.0
-                ]
-            ],
-            "material": {
-                "diffuse_color": [
-                    0.800000011920929,
-                    0.800000011920929,
-                    0.800000011920929
-                ],
-                "specular_color": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "roughness": 0.800000011920929,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
-                "reflectivity": 0.0,
-                "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
-                "texture_file": ""
-            }
-        },
-        {
-            "corners": [
-                [
-                    -5.0,
-                    -5.0,
-                    0.0
-                ],
-                [
-                    5.0,
-                    -5.0,
-                    0.0
-                ],
-                [
-                    -5.0,
-                    5.0,
-                    0.0
-                ],
-                [
-                    5.0,
-                    5.0,
-                    0.0
-                ]
-            ],
-            "material": {
-                "diffuse_color": [
-                    0.800000011920929,
-                    0.800000011920929,
-                    0.800000011920929
-                ],
-                "specular_color": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "roughness": 0.800000011920929,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
-                "reflectivity": 0.0,
-                "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
-                "texture_file": ""
-            }
-        },
-        {
-            "corners": [
-                [
-                    -5.0,
-                    -5.0,
-                    10.0
-                ],
-                [
-                    -5.0,
-                    -5.0,
-                    0.0
-                ],
-                [
-                    -5.0,
-                    5.0,
-                    10.0
-                ],
-                [
-                    -5.0,
-                    5.0,
-                    0.0
-                ]
-            ],
-            "material": {
-                "diffuse_color": [
-                    0.6000000238418579,
-                    0.10000000149011612,
-                    0.10000000149011612
-                ],
-                "specular_color": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "roughness": 0.800000011920929,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
-                "reflectivity": 0.0,
-                "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
-                "texture_file": ""
-            }
-        },
-        {
-            "corners": [
-                [
-                    5.0,
-                    -5.0,
-                    0.0
-                ],
-                [
-                    5.0,
-                    -5.0,
-                    10.0
-                ],
-                [
-                    5.0,
-                    5.0,
-                    0.0
-                ],
-                [
-                    5.0,
-                    5.0,
-                    10.0
-                ]
-            ],
-            "material": {
-                "diffuse_color": [
-                    0.10000000149011612,
-                    0.6000000238418579,
-                    0.10000000149011612
-                ],
-                "specular_color": [
-                    1.0,
-                    1.0,
-                    1.0
-                ],
-                "roughness": 0.800000011920929,
-                "k_ambient": 0.1,
-                "k_diffuse": 0.9,
-                "k_specular": 0.3,
-                "reflectivity": 0.0,
-                "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
-                "texture_file": ""
-            }
-        }
-    ],
-    "lights": [
-        {
-            "location": [
-                0.0,
-                -2.0,
-                8.0
-            ],
-            "intensity": 80.0,
-            "color": [
-                1.0,
-                0.949999988079071,
-                0.8999999761581421
-            ],
-            "radius": 1.5
-        },
-        {
-            "location": [
-                4.0,
-                -8.0,
-                5.0
-            ],
-            "intensity": 30.0,
-            "color": [
-                0.800000011920929,
-                0.800000011920929,
-                1.0
-            ],
-            "radius": 0.0
-        },
-        {
             "location": [
                 0.0,
                 0.0,
-                4.0
-            ],
-            "intensity": 60.0,
-            "color": [
-                1.0,
-                0.949999988079071,
-                0.8999999761581421
-            ],
-            "radius": 1.5
-        }
-    ],
-    "spheres": [
-        {
-            "location": [
-                2.0,
-                -1.5,
-                1.5
+                0.0
             ],
             "radius": 1.4999990463256836,
+            "velocity": [
+                2.0,
+                0.0,
+                0.0
+            ],
             "material": {
                 "diffuse_color": [
-                    1.0,
-                    1.0,
-                    1.0
+                    0.8,
+                    0.8,
+                    0.8
                 ],
                 "specular_color": [
                     1.0,
                     1.0,
                     1.0
                 ],
-                "roughness": 0.0,
+                "roughness": 0.5,
                 "k_ambient": 0.1,
                 "k_diffuse": 0.9,
                 "k_specular": 0.3,
                 "reflectivity": 0.0,
-                "transparency": 0.30000001192092896,
-                "refractive_index": 1.5,
+                "transparency": 0.0,
+                "refractive_index": 1.0,
                 "texture_file": ""
             }
         },
         {
             "location": [
-                -1.5,
-                -2.5,
-                1.0
+                -3.0,
+                -1.0,
+                4.0
             ],
             "radius": 0.9999994039535522,
+            "velocity": [
+                0.0,
+                0.0,
+                0.0
+            ],
             "material": {
                 "diffuse_color": [
-                    0.800000011920929,
-                    0.6000000238418579,
-                    0.20000000298023224
+                    0.8,
+                    0.8,
+                    0.8
                 ],
                 "specular_color": [
                     1.0,
                     1.0,
                     1.0
                 ],
-                "roughness": 0.4000000059604645,
+                "roughness": 0.5,
                 "k_ambient": 0.1,
                 "k_diffuse": 0.9,
                 "k_specular": 0.3,
-                "reflectivity": 0.6000000238418579,
+                "reflectivity": 0.0,
                 "transparency": 0.0,
-                "refractive_index": 1.4500000476837158,
+                "refractive_index": 1.0,
                 "texture_file": ""
             }
         }

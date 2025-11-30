@@ -12,7 +12,7 @@ class Process_objects:
     def _get_material_properties(self, blender_object):
         """
         Extracts material data, handling the modern Principled BSDF node
-        to satisfy the Blinn-Phong shading requirement[cite: 172].
+        to satisfy the Blinn-Phong shading requirement.
         """
         # Defaults
         material_data = {
@@ -37,35 +37,31 @@ class Process_objects:
 
         nodes = material.node_tree.nodes
         
-        # --- LOGIC UPDATE: Handle Principled BSDF ---
+        # --- Handle Principled BSDF ---
         principled = next((n for n in nodes if n.type == 'BSDF_PRINCIPLED'), None)
         
         if principled:
-            # 1. Diffuse Color -> Base Color
             color = principled.inputs['Base Color'].default_value
             material_data['diffuse_color'] = list(color)[:3]
-            
-            # 2. Specular/Shininess -> Roughness
-            # Your C++ code calculates shininess = 1/roughness^2
             material_data['roughness'] = principled.inputs['Roughness'].default_value
-            
-            # 3. Reflectivity -> Metallic
-            # While not physically identical, Metallic is the best proxy for "Reflectivity"
-            # in a Whitted-style tracer using Principled nodes.
             material_data['reflectivity'] = principled.inputs['Metallic'].default_value
-
-            # 4. Transparency -> Transmission
             material_data['transparency'] = principled.inputs['Transmission Weight'].default_value
             
-            # 5. IOR
             if 'IOR' in principled.inputs:
                 material_data['refractive_index'] = principled.inputs['IOR'].default_value
+            
+            # --- Check for Texture Image ---
+            if principled.inputs['Base Color'].is_linked:
+                link = principled.inputs['Base Color'].links[0]
+                node = link.from_node
+                if node.type == 'TEX_IMAGE' and node.image:
+                    material_data['texture_file'] = os.path.basename(node.image.filepath)
 
             return material_data
 
-        # --- Fallback: Legacy Diffuse/Glossy Nodes ---
+        # --- Fallback: Legacy Nodes ---
         diffuse_node = next((n for n in nodes if n.type == 'BSDF_DIFFUSE'), None)
-        glossy_node = next((n for n in nodes if n.type == 'BSDF_GLOSSy'), None)
+        glossy_node = next((n for n in nodes if n.type == 'BSDF_GLOSSY'), None)
 
         if diffuse_node:
             color = diffuse_node.inputs['Color'].default_value
@@ -87,8 +83,9 @@ class Process_objects:
                 if 'Sphere' in obj.name:
                     sphere_data = {
                         'location': list(obj.location), 
-                        # Spec requirement: "location and radius (scale in Blender)" 
                         'radius': obj.dimensions.x / 2.0,
+                        # [UPDATED] Added Velocity for Motion Blur
+                        'velocity': list(obj.get("velocity", [0.0, 0.0, 0.0])),
                         'material': material_data  
                     }
                     self.dict['spheres'].append(sphere_data)
@@ -97,7 +94,6 @@ class Process_objects:
                     cube_data = {
                         'translation': list(obj.location), 
                         'rotation': list(obj.rotation_euler), 
-                        # Spec requirement: "translation, rotation and 1D scale" [cite: 147]
                         'scale': obj.dimensions.x / 2.0,
                         'material': material_data  
                     }
@@ -105,14 +101,12 @@ class Process_objects:
                     
                 elif 'Plane' in obj.name:
                     plane_data = {
-                        # Spec requirement: "3D coordinates of its four corners" [cite: 148]
                         'corners': [list(obj.matrix_world @ v.co) for v in obj.data.vertices],
                         'material': material_data  
                     }
                     self.dict['planes'].append(plane_data)
                     
             elif obj.type == 'CAMERA':
-                # Spec requirement: location, gaze, focal length, sensor dims [cite: 140, 141]
                 camera_data = {
                     'location': list(obj.location), 
                     'gaze_vector': list(obj.matrix_world.to_quaternion() @ Vector((0.0, 0.0, -1.0))),
@@ -120,11 +114,14 @@ class Process_objects:
                     'sensor_width': obj.data.sensor_width,
                     'sensor_height': obj.data.sensor_height,
                     'up_vector': list(obj.matrix_world.to_quaternion() @ Vector((0.0, 1.0, 0.0))),
+                    # [UPDATED] Added Aperture and Focus Distance for Depth of Field
+                    # We check Custom Properties first (obj.get), then fallback to native Blender DoF settings
+                    'aperture': obj.get("aperture", 0.0), 
+                    'focus_dist': obj.get("focus_dist", obj.data.dof.focus_distance)
                 }
                 self.dict['cameras'].append(camera_data)
                 
             elif obj.type == 'LIGHT' and obj.data.type == 'POINT':
-                # Spec requirement: "location and radiant intensity" [cite: 143]
                 light_data = {
                     'location': list(obj.location), 
                     'intensity': obj.data.energy,
