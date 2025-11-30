@@ -354,19 +354,20 @@ Color Trace(
 
 int main(int argc, char* argv[]) {
     try {
-        std::string scene_file = "/Users/ericzhang/Documents/Computer_graphics/Coursework/s2286795/ASCII/scene.json";
+        std::string scene_file_path = "../../ASCII/";
         
         // --- Command Line Parsing ---
         bool use_bvh = false;    // Default: false (as per your code)
         int n_samples_sqrt = 4;  // Default: 4x4 samples (as per your code)
         int light_samples = 1;
+        std::string scene_file_name = "";
+        std::string output_file_name = "output.ppm";
 
         for (int i = 1; i < argc; ++i) {
             // Check for BVH flag
             if (std::strcmp(argv[i], "-bvh") == 0) {
                 use_bvh = true;
             }
-
             // Check for Samples flag, how mnay samples we take for a signle pixel to reduce antialiasing
             else if (std::strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
                 n_samples_sqrt = std::atoi(argv[i + 1]);
@@ -377,8 +378,24 @@ int main(int argc, char* argv[]) {
                 light_samples = std::atoi(argv[i+1]);
                 i++;
             }
+            else if(std::strcmp(argv[i], "-input") == 0 && i+1 <argc){
+                scene_file_name = std::string(argv[i+1]);
+                i++;
+            }
+            else if(std::strcmp(argv[i], "-output") == 0 && i+1 < argc){
+                output_file_name = std::string(argv[i+1]);
+                i++;
+            }
         }
-        
+        if (scene_file_name == ""){
+            std::cerr << "Error: Please specify scene file name" <<std::endl;
+            std::cout << "Correct usage: ./Raytracer -name {scene_file_name.json}" <<std::endl;
+            return 1;
+        }
+
+        std::string scene_file = scene_file_path + scene_file_name;
+        std::string output_file = "../../Output/"+output_file_name;
+
         // 1. Load Camera
         Camera camera(scene_file);
         auto [width, height] = camera.getResolution(); 
@@ -443,7 +460,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Rendering complete.\n";
 
         // 5. Save Final Image
-        outputImage.write("../../Output/output.ppm");
+        outputImage.write(output_file);
 
     } catch (const std::exception& e) {
         std::cerr << "An error occurred: " << e.what() << std::endl;
