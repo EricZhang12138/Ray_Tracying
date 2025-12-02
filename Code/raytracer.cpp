@@ -259,7 +259,8 @@ Color shade(
         Color specular = mat.specular_color * spec_intensity;
 
         // Attenuation
-        float attenuation = 0.15f * light.intensity / (1.0f + light_distance + dist_sq);
+        float attenuation = 10.0f * light.intensity / (25.0f + 10.0f * light_distance + 150.0f * dist_sq);
+        //float attenuation = 75.0f * light.intensity / (1.0f + 0.0f * light_distance + 1000.0f * dist_sq);
         Color light_color_vec = {light.color[0], light.color[1], light.color[2]};
 
         // Combine
@@ -427,7 +428,7 @@ int main(int argc, char* argv[]) {
 
         // 4. Main Render Loop
         std::cout << "Rendering " << width << "x" << height << " with " 
-                  << n_samples_sqrt << "x" << n_samples_sqrt << " samples..." << std::endl;
+                  << n_samples_sqrt << "x" << n_samples_sqrt << " samples" << " and " <<light_samples<<" light sampling points ..."<< std::endl;
 
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
@@ -440,6 +441,21 @@ int main(int argc, char* argv[]) {
                     gen, dist, light_samples
                 );
 
+                // 5. Apply Gamma Correction (Transform Linear -> sRGB)
+                // Monitors expect data raised to the power of (1.0 / 2.2)
+                float gamma = 1.1f;
+                float r_corr = std::pow(Averaged_color.r, 1.0f / gamma);
+                float g_corr = std::pow(Averaged_color.g, 1.0f / gamma);
+                float b_corr = std::pow(Averaged_color.b, 1.0f / gamma);
+
+                // 6. Clamp and Write the CORRECTED color
+                // We use the gamma-corrected values (r_corr) instead of the raw ones
+                outputImage.setPixel(x, y, 
+                    static_cast<int>(std::max(0.0f, std::min(1.0f, r_corr)) * 255.999),
+                    static_cast<int>(std::max(0.0f, std::min(1.0f, g_corr)) * 255.999),
+                    static_cast<int>(std::max(0.0f, std::min(1.0f, b_corr)) * 255.999)
+                );
+                /*
                 // 5. Clamp the final averaged color
                 Averaged_color.r = std::max(0.0f, std::min(1.0f, Averaged_color.r));
                 Averaged_color.g = std::max(0.0f, std::min(1.0f, Averaged_color.g));
@@ -451,6 +467,7 @@ int main(int argc, char* argv[]) {
                     static_cast<int>(Averaged_color.g * 255.999),
                     static_cast<int>(Averaged_color.b * 255.999)
                 );
+                */
             }
             // Print progress
             if (y > 0 && y % 100 == 0) {

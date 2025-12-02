@@ -63,9 +63,28 @@ public:
     virtual AABB get_bounding_box() const = 0;
     std::string type = "Shape";
     Material material;
+    std::array<float, 3> velocity; 
 
+protected:
+    // === Transformation Helpers (Shared by all transformed shapes) ===
+    std::array<std::array<float,4>,4> world_to_object;
+    std::array<std::array<float,4>,4> object_to_world;
+
+    void buildTransformationMatrices(const std::array<float, 3>& translation,
+                                   const std::array<float, 3>& rotation,
+                                   const std::array<float, 3>& scale); // Scale is now x,y,z
+
+    std::array<float, 3> transformPoint(const std::array<std::array<float, 4>, 4>& matrix, 
+                                      const std::array<float, 3>& point) const;
+    std::array<float, 3> transformVector(const std::array<std::array<float, 4>, 4>& matrix, 
+                                       const std::array<float, 3>& vector) const;
+    std::array<float, 3> transformNormal(const std::array<std::array<float, 4>, 4>& matrix, 
+                                       const std::array<float, 3>& normal) const;
     
-    
+    // Static helper to multiply 4x4 matrices
+    static std::array<std::array<float, 4>, 4> multiplyMatrices(
+        const std::array<std::array<float, 4>, 4>& A, 
+        const std::array<std::array<float, 4>, 4>& B);
 };
 
 class Plane : public Shapes{
@@ -73,62 +92,50 @@ public:
     Plane(std::array<float,3> corner[4], const Material& mat);
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
-
-
-
 private:
     std::array<float, 3> corners[4]; // four corners, each with 3 coordinates
     bool isPointInQuad(const std::array<float, 3>& point, const std::array<float, 3> corners[4]);
 };
 
-class Sphere : public Shapes{
-private:
-    std::array<float, 3> center;  // Sphere center position
-    float radius;                  // Sphere radius
-    bool is_moving = false;
-    std::array<float, 3> velocity = {0,0,0}; // Movement vector during shutter open
-    
+
+// --- Rectangle (Transformed Unit Square) ---
+class Rectangle : public Shapes {
 public:
-    // Constructor
-    Sphere(const std::array<float, 3>& c, float r, const Material& mat, std::array<float, 3> vel = {0,0,0});
+    // Constructor takes transform properties
+    Rectangle(const std::array<float, 3>& translation, 
+              const std::array<float, 3>& rotation, 
+              const std::array<float, 3>& scale, 
+              const Material& mat);
+              
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
-
-    std::array<float, 3> get_center(float time) const {
-        if (!is_moving) return center;
-        return {
-            center[0] + velocity[0] * time,
-            center[1] + velocity[1] * time,
-            center[2] + velocity[2] * time
-        };
-    }
-    
-
-
 };
+
+class Sphere : public Shapes{
+// Constructor takes transform properties instead of center/radius
+public:
+    Sphere(const std::array<float, 3>& translation, 
+           const std::array<float, 3>& rotation, 
+           const std::array<float, 3>& scale, 
+           const Material& mat,
+           const std::array<float, 3>& vel);
+           
+    bool intersect(Hit &hit, const Ray &ray) override;
+    AABB get_bounding_box() const override;
+};
+
+
+
 
 class Cube : public Shapes{
 public:
-    // Constructor that takes transformation matrices
-    Cube(const std::array<float, 3>& translation, const std::array<float, 3>& rotation,  float scale, const Material& mat);
+    Cube(const std::array<float, 3>& translation, 
+         const std::array<float, 3>& rotation,  
+         const std::array<float, 3>& scale, // Changed float scale to array scale for consistency
+         const Material& mat);
+         
     bool intersect(Hit &hit, const Ray &ray) override;
     AABB get_bounding_box() const override;
-
-private:
-    // transformation matrices
-    std::array<std::array<float,4>,4> world_to_object;
-    std::array<std::array<float,4>,4> object_to_world;
-    std::array<float, 3> transformPoint(const std::array<std::array<float, 4>, 4>& matrix, 
-                                       const std::array<float, 3>& point) const;
-    std::array<float, 3> transformVector(const std::array<std::array<float, 4>, 4>& matrix, 
-                                        const std::array<float, 3>& vector);
-    std::array<float, 3> transformNormal(const std::array<std::array<float, 4>, 4>& matrix, 
-                                        const std::array<float, 3>& normal);
-    
-    void buildTransformationMatrices(const std::array<float, 3>& translation,
-                                       const std::array<float, 3>& rotation,
-                                       float scale);
-    std::array<std::array<float, 4>, 4> multiplyMatrices(const std::array<std::array<float, 4>, 4>& A, const std::array<std::array<float, 4>, 4>& B);
 };
 
 #endif

@@ -79,8 +79,17 @@ else()
     message(WARNING "Blender not found. You will need to export scenes manually.")
 endif()
 
-set(BLEND_FILES "${CMAKE_SOURCE_DIR}/../Blend/scene.blend")
+# set(BLEND_FILES "${CMAKE_SOURCE_DIR}/../Blend/scene.blend")
+# This sets a default, but allows it to be overridden by the command line
+set(BLEND_FILES "${CMAKE_SOURCE_DIR}/../Blend/scene.blend" CACHE STRING "The .blend file to export")
+
+# 1. Update the target (does not recompile C++ code)
+# cmake -D BLEND_FILES="../../Blend/my_scene.blend" .
+# 2. Run the export
+# make export
+
 set(EXPORTER_FILES "${CMAKE_SOURCE_DIR}/../Blend/exporter.py")
+
 
 
 if(BLENDER_EXECUTABLE)

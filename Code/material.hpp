@@ -125,8 +125,11 @@ public:
         int r, g, b;
         texture->getPixel(x, y, r, g, b); // Get the int[0,255] color
 
-        // Convert the [0, 255] int color back to [0, 1] float color
-        // for shading calculations.
-        return {r / 255.0f, g / 255.0f, b / 255.0f};
+        // 1. Normalize texture color to 0.0 - 1.0
+        Color tex_color = {r / 255.0f, g / 255.0f, b / 255.0f};
+
+        // 2. Multiply by the material's base diffuse color (The Orange Tint)
+        // This acts exactly like the "Multiply" node in Blender.
+        return tex_color * diffuse_color;
     }
 };

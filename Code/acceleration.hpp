@@ -23,8 +23,6 @@ public:
     Hit get_intersection(const Ray& ray, bool use_acceleration);
 private:
     void construct_tree(int start, int end, node& root);
-    
-    
 
 private:
     std::vector<Hit> temp_hit_vec;    // may not be a very good design here 
