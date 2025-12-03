@@ -1,38 +1,22 @@
-Camera class implemented 
-Ppm image reader implemented
+Module 1:
+- Blender Exporter: Python script (Export.py) to export Scene, Lights, Camera, and Geometry to ASCII.
+- Camera Class: Pinhole model with coordinate transformations.
+- Image Read/Write: Custom class for reading and writing .ppm format images.
 
-Shapes class and intersection check function implemented 
-Architecture BVH implemented
+Module 2:
+- Ray Intersection: Implemented for Spheres (Object Space), Planes, and Cubes.
+- Object-Oriented Shape Hierarchy: Base Shape class with generalized matrix transformations.
+- Acceleration Hierarchy: Spatial acceleration structure for optimized rendering.
 
+Module 3:
+- Whitted-style Raytracing: Recursive ray tracing for reflections and refractions (dielectrics).
+- Blinn-Phong Shading: Local illumination model.
+- Antialiasing: Pixel super-sampling/averaging.
+- Texture Mapping: UV mapping support using .ppm textures (with robust node-graph traversing in exporter).
 
-Features from Module1 and Module2 both assembled
-antialiasing implemented with jittered sampling for each pixel
-Textures implemented. Texture files are in the Textures folder
-
-
-
-
-
-
-Correction while integrating:
-
-Cube scale: -1 1 in blender but it was 0,1 in my code so I had to scale it up 
-
-2.  Local color needs to be scaled down by reflectivity and refractivity
-
-3. Sum all the colours from multiples samples in a pixel, average them and clamp. Instead of clamping each sample before even averaging them. 
-
-4. Jittered sampling for each pixel  
-
-
-pixelToRay used to take tuple<int, int> and it truncates the jittered sampling values. For example, (5.3, 5.2) is converted to (5,5). So I changed it to tuple <float, float>
-
-
-
-Modified BVH class because I need it to support tree structure intersection and linear intersection to see how much the intersection can help
-
-
-In exporter.py, for sphere, changed 'radius': obj.scale.x, to 'radius': obj.dimensions.x / 2.0 for correct dimension calculation 
-
-
-Stored roughness instead of just shininess for distributed raytracing
+Final Raytracer:
+- System Integration: Command-line arguments to toggle features/resolution.
+- Distributed Raytracing: Soft Shadows (Stochastic light sampling).
+- Distributed Raytracing: Glossy Reflections (Roughness-based ray perturbation).
+- Lens Effects: Depth of Field (Thin-lens simulation with aperture/focus distance).
+- Lens Effects: Motion Blur (Velocity-based temporal sampling).

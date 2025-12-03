@@ -1,4 +1,4 @@
-MacOS 15.5
+macOS 15.5
 Clang-17.0.0
 
 
